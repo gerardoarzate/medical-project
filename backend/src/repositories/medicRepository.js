@@ -1,6 +1,5 @@
 const db = require('../config/db').getDB();
-const bcrypt = require('bcrypt');
-const bcryptSalt = Number(process.env.BCRYPT_SALT);
+const { hashPassword } = require('../utils/tokenUtils');
 
 
 
@@ -14,7 +13,7 @@ const bcryptSalt = Number(process.env.BCRYPT_SALT);
  */
 const createMedic = async (medic) => {
 
-    const passwordHashed = await bcrypt.hash(medic.password, bcryptSalt);
+    const passwordHashed = await hashPassword(medic.password);
     const insertUserQuery = `
         INSERT INTO usuarios(nombre, apellidos, email, telefono, password) VALUES(?, ?, ?, ?, ?)
     `;
