@@ -1,5 +1,4 @@
 const medicRepository = require('../repositories/medicRepository');
-const jwt = require('jsonwebtoken');
 const { generateToken } = require('../utils/tokenUtils');
 /**
  * 
