@@ -1,11 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const { getUserAndTypeOfUserByEmail } = require('../repositories/UserRepository');
+const { generateToken } = require('../utils/tokenUtils');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET;
-const timeToExpireToken = process.env.TIME_TO_EXPIRE_TOKEN;
 
 const messages = {
     badRequest: { message: 'Invalid fields' },
@@ -32,7 +30,7 @@ const loginController = async (req, res) => {
             return res.status(401).json(messages.unauthorized);
         }
 
-        const token = generateToken(user);
+        const token = generateToken(user.id, user.tipo);
         return res.status(200).json({ ...messages.loginSuccess, token });
 
     } catch (error) {
@@ -45,9 +43,5 @@ const isInputLoginValid = (email, password) => {
     return email && password && typeof email === 'string' && typeof password === 'string';
 }
 
-
-const generateToken = (user) => {
-    return jwt.sign({ userId: user.id, type: user.tipo }, JWT_SECRET, { expiresIn: timeToExpireToken });
-};
 
 module.exports = loginController;
