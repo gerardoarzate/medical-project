@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET;
 const timeToExpireToken = process.env.TIME_TO_EXPIRE_TOKEN;
-
+const bcrypt = require('bcrypt');
+const bcryptSalt = Number(process.env.BCRYPT_SALT);
 
 /**
  * 
@@ -13,7 +14,11 @@ const generateToken = (userId, type) => {
     return jwt.sign({ userId, type }, JWT_SECRET, { expiresIn: timeToExpireToken });
 };
 
+const hashPassword = async (password) => {
+    return bcrypt.hash(password, bcryptSalt);
+};
 
 module.exports = {
-    generateToken
+    generateToken,
+    hashPassword
 };
