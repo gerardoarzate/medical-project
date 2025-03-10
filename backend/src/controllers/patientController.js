@@ -1,4 +1,4 @@
-const patientsRepository = require("../repositories/patientsRepository");
+const patientRepository = require("../repositories/patientRepository");
 const { generateToken } = require("../utils/tokenUtils");
 
 
@@ -7,7 +7,7 @@ const createPatient = async (req, res, next) => {
 
     try{
 
-        const patientCreated = await patientsRepository.createPatient(patient);
+        const patientCreated = await patientRepository.createPatient(patient);
         const token = generateToken(patientCreated.id, "PACIENTE");
     
         const response = {
