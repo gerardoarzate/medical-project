@@ -14,6 +14,7 @@ async function startServer() {
     const loginRoute = require('./src/routes/login'); // IMPORTANT: load the routes after connecting to the database
     const medicRoutes = require('./src/routes/medicRoutes');// because routes need the database connection already established
     const patientRoutes = require('./src/routes/patientRoute');
+    const specialityRoutes = require('./src/routes/specialityRoute');
 
     const server = app.listen(process.env.PORT || 3000, () => {
         console.log(`Listening on port ${server.address().port}`);
@@ -28,6 +29,7 @@ async function startServer() {
     app.use(loginRoute);
     app.use(medicRoutes);
     app.use(patientRoutes);
+    app.use(specialityRoutes);
     io.on('connection', socketController(io));
     
     app.use(authMiddleware);
