@@ -16,6 +16,7 @@ async function startServer() {
     const patientRoutes = require('./src/routes/patientRoute');
     const specialityRoutes = require('./src/routes/specialityRoute');
     const userRoutes = require('./src/routes/userRoutes');
+    const emergencyRoutes = require('./src/routes/emergencyRoutes');
 
     const server = app.listen(process.env.PORT || 3000, () => {
         console.log(`Listening on port ${server.address().port}`);
@@ -36,6 +37,7 @@ async function startServer() {
     app.use(authMiddleware);
     // routes which need authentication
     app.use(userRoutes);
+    app.use(emergencyRoutes);
     // error handling middleware
     app.use(notFoundMiddleware);
     app.use(errorMiddleware);
