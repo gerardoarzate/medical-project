@@ -14,6 +14,11 @@ const generateToken = (userId, type) => {
     return jwt.sign({ userId, type }, JWT_SECRET, { expiresIn: timeToExpireToken });
 };
 
+/**
+ * 
+ * @param {string} password la contraseña a hashear
+ * @returns {Promise<string>} la contraseña hasheada
+ */
 const hashPassword = async (password) => {
     return bcrypt.hash(password, bcryptSalt);
 };
