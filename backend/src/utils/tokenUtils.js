@@ -23,7 +23,14 @@ const hashPassword = async (password) => {
     return bcrypt.hash(password, bcryptSalt);
 };
 
+
+const getTypeAndIdFromToken = (token) => {
+    const { type, userId } = jwt.verify(token, JWT_SECRET);
+    return { type, userId };
+};
+
 module.exports = {
     generateToken,
-    hashPassword
+    hashPassword,
+    getTypeAndIdFromToken
 };
