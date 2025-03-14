@@ -31,7 +31,7 @@ const onConnection = (io) =>{
  */
 const handlerNewUserConnection = async (user, socket, io) => {    
     await userService.registerUserConnection(user, socket); // add to the list of users connected
-    const eventHandlers = require('../services/eventHandlers')(socket, io); // get the event handlers file which contain all the events that the user can do
+    const clientToServerEventHandlers = require('../services/clientToServerEventHandlers')(socket, io); // get the event handlers file which contain all the events that the user can do
 
     if(user.type == 'MEDICO'){ // every type of user has different events
         handlerMedicConnection(socket, user);
@@ -42,7 +42,7 @@ const handlerNewUserConnection = async (user, socket, io) => {
 
     //// events that are common for all users
 
-    socket.on('disconnect', eventHandlers.onDisconnect(user));
+    socket.on('disconnect', clientToServerEventHandlers.onDisconnect(user));
 };
 
 

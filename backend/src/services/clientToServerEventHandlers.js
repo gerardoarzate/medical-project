@@ -1,5 +1,5 @@
 const { Socket, Server } = require('socket.io');
-const userService = require('../services/userService');
+const userService = require('./userService');
 /**
  * 
  * @param {Socket} socket 
