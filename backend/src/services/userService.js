@@ -6,7 +6,7 @@ const { Socket, Server } = require("socket.io");
 const users = {
     amountOfUsers: 0,
     patients: [],
-    doctors: []
+    medics: []
 };
 
 
@@ -31,7 +31,7 @@ const registerUserConnection = async (user, socket) => {
     const newUser = { ...user, socket };
 
     if (user.type === 'MEDICO') {
-        users.doctors.push(newUser);
+        users.medics.push(newUser);
     } else if (user.type === 'PACIENTE') {
         users.patients.push(newUser);
     }
@@ -60,7 +60,7 @@ const getAllPatients = async () => {
  * 
  * @returns {Promise<UserConnected[]>}
  */
-const getAllDoctors = async () => {
+const getAllmedics = async () => {
     return users.patients;
 };
 
@@ -70,7 +70,7 @@ const getAllDoctors = async () => {
  * @returns {Promise<UserConnected[]>}
  */
 const getAllConnectedUsers = async () => {
-    return [...users.doctors, ...users.patients];
+    return [...users.medics, ...users.patients];
 };
 
 
@@ -86,7 +86,7 @@ const removeConnectedUser = async (userConnected, typeOfMessage = 'alert', messa
     userConnected.socket.emit('alert', message);
     userConnected.socket.disconnect();
     if (users.type === 'MEDICO') {
-        users.doctors = users.doctors.filter(u => u.userId !== userConnected.userId);
+        users.medics = users.medics.filter(u => u.userId !== userConnected.userId);
     } else {
         users.patients = users.patients.filter(u => u.userId !== userConnected.userId);
     }
@@ -102,7 +102,7 @@ const removeConnectedUser = async (userConnected, typeOfMessage = 'alert', messa
  */
 const isUserAlreadyConnected = async (user) => {
     const userConnected = [
-        ...users.doctors,
+        ...users.medics,
         ...users.patients
     ].find(u => u.userId === user.userId);
     return userConnected;
@@ -130,14 +130,14 @@ const isUserAlreadyConnected = async (user) => {
  * @typedef {Object} ListOfUsers
  * @property {number} amountOfUsers
  * @property {UserConnected[]} patients
- * @property {UserConnected[]} doctors
+ * @property {UserConnected[]} medics
  */
 
 module.exports = {
     registerUserConnection,
     getAllPatients,
     removeConnectedUser,
-    getAllDoctors,
+    getAllmedics,
     getAllConnectedUsers
 
 };

@@ -8,7 +8,7 @@ const { generateToken } = require('../utils/tokenUtils');
  * los datos del médico creado
  * @throws {Error} si hay un error en la consulta
  */
-const createDoctor = async (req, res, next) => {
+const createmedic = async (req, res, next) => {
     const medic = req.body;
 
     try{
@@ -17,7 +17,7 @@ const createDoctor = async (req, res, next) => {
         const token = generateToken(medicCreated.id, "MEDICO");
     
         const response = {
-            message: "Doctor created",
+            message: "medic created",
             token
         };
     
@@ -33,7 +33,7 @@ const createDoctor = async (req, res, next) => {
 
 
 module.exports = {
-    createDoctor
+    createmedic
 }
 
 
