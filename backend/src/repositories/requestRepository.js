@@ -52,7 +52,7 @@ const getAllPendingRequests = async () => {
 /**
  * 
  * @param {Number} patientId 
- * @param {{emergencyTypeId: number, notes: string, initialLocation: string}} newRequestData
+ * @param {{emergencyTypeId: number, notes: string, initialLocation: 'latitude,longitude'}} newRequestData
  */
 const createRequest = async (patientId, newRequestData) => {
 
