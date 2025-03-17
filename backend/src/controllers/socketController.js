@@ -30,19 +30,26 @@ const onConnection = (io) =>{
  * @param {User} user 
  */
 const handlerNewUserConnection = async (user, socket, io) => {    
+    // maybe this method should be return a instance of a specific user (Medic, Patient, etc) and this instance should have all the events that the user can do
     await userService.registerUserConnection(user, socket); // add to the list of users connected
-    const clientToServerEventHandlers = require('../services/clientToServerEventHandlers')(socket, io); // get the event handlers file which contain all the events that the user can do
+    
+    const clientToServerEventHandlers = await require('../services/clientToServerEventHandlers')(socket, io, user); // get the event handlers file which contain all the events that the user can do
 
-    if(user.type == 'MEDICO'){ // every type of user has different events
-        handlerMedicConnection(socket, user);
+    // every type of user has different events, this can be implemented with a UserFactory, every user has a different event handler, and unique method 
+    if(user.type == 'MEDICO'){// could be invoked for different types of users, and every type of user initialize their own events
+        handlerMedicConnection(socket, user); // maybe this can be deleted, and all events put in every if
+
     }else if(user.type == 'PACIENTE'){
         handlerPatientConnection(socket, user);
+        socket.on('createRequest', clientToServerEventHandlers.createRequest());
+
+        
     }
 
 
     //// events that are common for all users
-
-    socket.on('disconnect', clientToServerEventHandlers.onDisconnect(user));
+    socket.on('sendMessage', clientToServerEventHandlers.sendMessage());
+    socket.on('disconnect', clientToServerEventHandlers.onDisconnect());
 };
 
 
@@ -51,7 +58,7 @@ const handlerNewUserConnection = async (user, socket, io) => {
  * 
  * @param {Socket} socket 
  * @param {string} token 
- * @returns {User}
+ * @returns {User | null}
  */
 const authenticateUser = (socket, token) => {
     try{
@@ -61,7 +68,7 @@ const authenticateUser = (socket, token) => {
         console.log('user dont have permission');
         socket.emit('error', 'No tienes permiso para conectarte, token invalido');
         socket.disconnect();
-        return;
+        return null;
     }
 };
 
