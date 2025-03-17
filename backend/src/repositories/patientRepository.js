@@ -26,6 +26,55 @@ const createPatient = async (patient) => {
 };
 
 
+/**
+ * 
+ * @param {Number} id 
+ * @returns {Promise<PatientData>}
+ */
+const getPatientById = async (id) => {
+    const query = `
+        SELECT u.id, u.nombre, u.apellidos, u.email, u.telefono, p.curp, p.edad, p.sexo, p.peso, p.estatura
+        FROM usuarios u
+        INNER JOIN pacientes p ON p.id_usuario = u.id
+        where p.id_usuario = ?
+    `;
+    const [result] = await db.query(query, [id]);
+    const patient = result[0];
+    
+    return {
+        id: patient.id,
+        name: patient.nombre,
+        lastname: patient.apellidos,
+        email: patient.email,
+        telephone: patient.telefono,
+        curp: patient.curp,
+        age: patient.edad,
+        sex: patient.sexo,
+        weight: patient.peso,
+        height: patient.estatura
+    };
+};
+
+
+
+
+/**
+ * @typedef {Object} PatientData
+ * @property {Number} id
+ * @property {string} name
+ * @property {string} lastname
+ * @property {string} email
+ * @property {string} telephone
+ * @property {string} curp
+ * @property {Number} age
+ * @property {'M' | 'F'} sex,
+ * @property {Number} weight
+ * @property {Number} height
+ * 
+ */
+
+
 module.exports = {
-    createPatient
+    createPatient,
+    getPatientById
 };
