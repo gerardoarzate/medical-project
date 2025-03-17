@@ -70,6 +70,19 @@ module.exports = async (socket, io, user) => {
             return async () => {
                 console.log('user disconnected');
                 await userService.removeConnectedUser(userConnected);
+                if(userConnected.type == 'MEDICO'){
+                    const patient = await userService.getConnectedPatientById(userConnected?.patientAssigned?.userId);
+                    if(patient){
+                        patient.socket.emit('alert', 'El medico se ha desconectado');
+                        patient.socket.emit('updateCounterpartLocation', {isOnline: false});
+                    }
+                }else if(userConnected.type == 'PACIENTE'){
+                    const medic = await userService.getConnectedMedicById(userConnected?.medicAssigned?.userId);
+                    if(medic){
+                        medic.socket.emit('alert', 'El paciente se ha desconectado');
+                        medic.socket.emit('updateCounterpartLocation', {isOnline: false});
+                    }
+                }
             }
         },
 
@@ -103,12 +116,12 @@ module.exports = async (socket, io, user) => {
                     currentUser = await userService.getConnectedMedicById(userConnected.userId);
                     
                     if (currentUser?.patientAssigned) {
-                        currentUser?.patientAssigned?.socket?.emit('updateCounterpartLocation', location);
+                        currentUser?.patientAssigned?.socket?.emit('updateCounterpartLocation', {...location, isOnline: true});
                     }
                 }else if(userConnected.type == 'PACIENTE'){
                     currentUser = await userService.getConnectedPatientById(userConnected.userId);
                     if(currentUser?.medicAssigned){
-                        currentUser?.medicAssigned?.socket?.emit('updateCounterpartLocation', location);
+                        currentUser?.medicAssigned?.socket?.emit('updateCounterpartLocation', {...location, isOnline: true});
                     }
                 }
                 await userService.updateLocation(currentUser, location);

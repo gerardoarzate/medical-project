@@ -13,10 +13,13 @@ const users = {
 
 
 setInterval(async() => {
+
     // verify in DB if there are requests that can be assigned
     // if there are, assign them
     // when a request is assigned, send a message to the medic and the patient
     // and add each other socket to the userConnected object of each user (medic to patient and patient to medic)
+
+    // after, send the data of the counterpart to each user, and ubication of each user
 }, TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED);
 
 
