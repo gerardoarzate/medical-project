@@ -63,9 +63,7 @@ module.exports = async (socket, io, user) => {
     const userConnected = { ...user, socket };
 
     await sendPendingRequestIfExist(userConnected); // here users are related each other, if they are connected both
-    // // console.log(userConnected);
-    // console.log(userConnected?.medicAssigned? userConnected.medicAssigned : '');
-    // console.log(userConnected?.patientAssigned? userConnected.patientAssigned : '');
+
     return {
         // all users
         onDisconnect: () => {
@@ -96,6 +94,28 @@ module.exports = async (socket, io, user) => {
                 userConnected.socket.emit('alert', 'No tienes un usuario asignado');
             }
         },
+        updateUserLocation: () => {
+
+            return async (location) => {
+                let currentUser = null;
+
+                if (userConnected.type == 'MEDICO') {
+                    currentUser = await userService.getConnectedMedicById(userConnected.userId);
+                    
+                    if (currentUser?.patientAssigned) {
+                        currentUser?.patientAssigned?.socket?.emit('updateCounterpartLocation', location);
+                    }
+                }else if(userConnected.type == 'PACIENTE'){
+                    currentUser = await userService.getConnectedPatientById(userConnected.userId);
+                    if(currentUser?.medicAssigned){
+                        currentUser?.medicAssigned?.socket?.emit('updateCounterpartLocation', location);
+                    }
+                }
+                await userService.updateLocation(currentUser, location);
+            };
+
+        },
+
 
         // patients
         createRequest: () => {
@@ -111,6 +131,26 @@ module.exports = async (socket, io, user) => {
                 }
                 const newRequest = await requestService.createNewRequest(userConnected, newRequestData);
                 userConnected.socket.emit('isRequestCreated', {});
+            };
+        },
+
+        // medics
+
+        endRequest: () => {
+            return async () =>{
+                const request = await requestService.getAssignedRequestByMedicId(userConnected.userId);
+
+                if(!request){
+                    userConnected.socket.emit('error', 'No tienes una solicitud asignada');
+                    return;
+                }
+                await requestService.endRequest(request.id);
+                userConnected.socket.emit('isRequestCompleted', {});
+
+                const patient = await userService.getConnectedPatientById(request.patientId);
+                patient.socket.emit('isRequestCompleted', {});
+
+                await userService.removeRelation(userConnected);
             };
         }
 
