@@ -38,16 +38,16 @@ const handlerNewUserConnection = async (user, socket, io) => {
     // every type of user has different events, this can be implemented with a UserFactory, every user has a different event handler, and unique method 
     if(user.type == 'MEDICO'){// could be invoked for different types of users, and every type of user initialize their own events
         handlerMedicConnection(socket, user); // maybe this can be deleted, and all events put in every if
-
+        socket.on('endRequest', clientToServerEventHandlers.endRequest());
+        
     }else if(user.type == 'PACIENTE'){
         handlerPatientConnection(socket, user);
         socket.on('createRequest', clientToServerEventHandlers.createRequest());
-
-        
     }
 
 
     //// events that are common for all users
+    socket.on('updateUserLocation', clientToServerEventHandlers.updateUserLocation());
     socket.on('sendMessage', clientToServerEventHandlers.sendMessage());
     socket.on('disconnect', clientToServerEventHandlers.onDisconnect());
 };
