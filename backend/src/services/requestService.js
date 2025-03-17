@@ -65,6 +65,26 @@ const getAssignedRequestByPatientId = async (patientId) => {
 };
 
 
+
+/**
+ * 
+ * @param {Number} idRequest
+ * @returns {Promise<Void>}
+ */
+const endRequest = async (idRequest) => {
+    return await requestRepository.endRequest(idRequest);
+};
+
+
+
+
+
+
+
+
+
+
+
 /**
  * @typedef {Object} UserConnected
  * @property {string} type
@@ -99,4 +119,5 @@ module.exports = {
     getPendingRequestByMedicId,
     getAssignedRequestByMedicId,
     getAssignedRequestByPatientId,
+    endRequest
 };
