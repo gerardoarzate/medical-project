@@ -173,6 +173,58 @@ const setAssignedMedicToPatient = async (medic, patient) => {
 }
 
 
+/**
+ * 
+ * @param {UserConnected} userConnected
+ * @param {String} location 
+ */
+const updateLocation = async (userConnected, location) => {
+    userConnected.location = location
+
+    if(userConnected.type === 'MEDICO'){
+        users.medics.find(m => m.userId === userConnected.userId).location = location;
+    }else{
+        users.patients.find(p => p.userId === userConnected.userId).location = location;
+    }
+};
+
+
+/**
+ * 
+ * @param {UserConnected} userConnected 
+ */
+const removeRelation = (userConnected) => {
+    if (userConnected.type === 'MEDICO') {
+        const currentMedic = users.medics.find(m => m.userId === userConnected.userId);
+        const currentPatient = users.patients.find(p => p.userId === currentMedic.patientAssigned.userId);
+
+        if (currentMedic?.patientAssigned) {
+            currentMedic.patientAssigned.medicAssigned = null;
+        }
+
+        if (currentPatient?.medicAssigned) {
+            currentPatient.medicAssigned.patientAssigned = null;
+        }
+
+        currentMedic.patientAssigned = null;
+    } else if (userConnected.type === 'PACIENTE') {
+        const currentPatient = users.patients.find(p => p.userId === userConnected.userId);
+        const currentMedic = users.medics.find(m => m.userId === currentPatient.medicAssigned.userId);
+
+        if (currentPatient?.medicAssigned) {
+            currentPatient.medicAssigned.patientAssigned = null;
+        }
+
+        if (currentMedic?.patientAssigned) {
+            currentMedic.patientAssigned.medicAssigned = null;
+        }
+
+        currentPatient.medicAssigned = null;
+    }
+};
+
+
+
 
 /**
  * 
@@ -239,6 +291,8 @@ module.exports = {
     getConnectedPatientById,
     getConnectedMedicById,
     setAssignedPatientToMedic,
-    setAssignedMedicToPatient
+    setAssignedMedicToPatient,
+    updateLocation,
+    removeRelation
 
 };
