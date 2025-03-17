@@ -4,13 +4,13 @@ const socketIOServer = require('socket.io');
 const app = express();
 
 const { connectDB } = require('./src/config/db');
-const socketController = require('./src/controllers/socketController');
 const authMiddleware = require('./src/middlewares/auth');
 const notFoundMiddleware = require('./src/middlewares/notFound');
 const errorMiddleware = require('./src/middlewares/error');
 
 async function startServer() {
     await connectDB();
+    const socketController = require('./src/controllers/socketController');
     const loginRoute = require('./src/routes/login'); // IMPORTANT: load the routes after connecting to the database
     const medicRoutes = require('./src/routes/medicRoutes');// because routes need the database connection already established
     const patientRoutes = require('./src/routes/patientRoute');
