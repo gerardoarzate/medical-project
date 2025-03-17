@@ -1,5 +1,6 @@
 const { Socket, Server } = require("socket.io");
-
+const requestService = require("./requestService");
+const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 1700; // 1.7 seconds
 /**
  * @type {ListOfUsers}
  */
@@ -11,16 +12,27 @@ const users = {
 
 
 
+setInterval(async() => {
+    // verify in DB if there are requests that can be assigned
+    // if there are, assign them
+    // when a request is assigned, send a message to the medic and the patient
+    // and add each other socket to the userConnected object of each user (medic to patient and patient to medic)
+}, TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED);
+
+
 
 
 /**
  * @param {User} user Los datos del usuario que se intenta conectar. type y userId
  * @param {Socket} socket El objeto del socket que se intenta conectar
  * @returns {Promise<void>}
+ * 
+ * @description Registra la conexion de un usuario en la lista de usuarios conectados, si tiene una solicitud 'Pendiente'
+ * los respectivos datos de cada usuario se enviarán a los eventos 'receiveCounterpartData' de cada usuario
  */
 const registerUserConnection = async (user, socket) => {
 
-    const userConnected = await isUserAlreadyConnected(user);
+    const userConnected = await sameUserAlreadyConnected(user);
     if (userConnected) {
         socket.emit('error', 'Usuario ya conectado');
         socket.disconnect(); // disconnect the user that is trying to connect
@@ -28,18 +40,17 @@ const registerUserConnection = async (user, socket) => {
         return;
     }
 
-    const newUser = { ...user, socket };
-
-    if (user.type === 'MEDICO') {
+    const newUser = { ...user, socket, location: null };
+    if (user.type === 'MEDICO') { // this could be handled with specific methods for each type of user to themself add to the list of users
         users.medics.push(newUser);
     } else if (user.type === 'PACIENTE') {
         users.patients.push(newUser);
     }
     users.amountOfUsers++;
-
     ///
     console.log(JSON.stringify(users, (key, value) => {
         if (key === 'socket') return value?.id; // Excluir la propiedad 'socket'
+        if (key === 'medicAssigned' || key === 'patientAssigned') return value?.userId;
         return value;
     }));
     ///
@@ -52,7 +63,7 @@ const registerUserConnection = async (user, socket) => {
  * 
  * @returns {Promise<UserConnected[]>}
  */
-const getAllPatients = async () => {
+const getAllConnectedPatients = async () => {
     return [...users.patients];
 };
 
@@ -60,8 +71,8 @@ const getAllPatients = async () => {
  * 
  * @returns {Promise<UserConnected[]>}
  */
-const getAllmedics = async () => {
-    return users.patients;
+const getAllConnectedMedics = async () => {
+    return [...users.medics];
 };
 
 
@@ -74,6 +85,24 @@ const getAllConnectedUsers = async () => {
 };
 
 
+/**
+ * 
+ * @param {Number} patientId 
+ * @returns {Promise<PatientConnected | undefined>}
+ */
+const getConnectedPatientById = async (patientId) => {
+    return {...users.patients.find(p => p.userId === patientId)};
+};
+
+/**
+ * 
+ * @param {Number} medicId 
+ * @returns {Promise<MedicConnected | undefined>}
+ */
+const getConnectedMedicById = async (medicId) => {
+    return {...users.medics.find(m => m.userId === medicId)};
+};
+
 
 /**
  * 
@@ -83,13 +112,22 @@ const getAllConnectedUsers = async () => {
  * @returns {Promise<void>}
  */
 const removeConnectedUser = async (userConnected, typeOfMessage = 'alert', message = 'Sesion cerrada') => {
-    userConnected.socket.emit('alert', message);
-    userConnected.socket.disconnect();
-    if (users.type === 'MEDICO') {
+    // this if's could be handled with specific methods for each type of user to themself remove from the list of users
+    if (userConnected.type === 'MEDICO') {
         users.medics = users.medics.filter(u => u.userId !== userConnected.userId);
+        patient = users.patients.find(p => p?.medicAssigned?.userId === userConnected.userId);
+        if (patient) {
+            patient.medicAssigned = null;
+        }
     } else {
         users.patients = users.patients.filter(u => u.userId !== userConnected.userId);
+        medic = users.medics.find(m => m?.patientAssigned?.userId === userConnected.userId);
+        if (medic) {
+            medic.patientAssigned = null;
+        }
     }
+    userConnected.socket.emit('alert', message);
+    userConnected.socket.disconnect();
 
     users.amountOfUsers--;
 };
@@ -100,7 +138,7 @@ const removeConnectedUser = async (userConnected, typeOfMessage = 'alert', messa
  * @param {User} user 
  * @returns {Promise<UserConnected | undefined>}
  */
-const isUserAlreadyConnected = async (user) => {
+const sameUserAlreadyConnected = async (user) => {
     const userConnected = [
         ...users.medics,
         ...users.patients
@@ -111,6 +149,35 @@ const isUserAlreadyConnected = async (user) => {
 
 
 
+const setAssignedPatientToMedic = async (patient, medic) => {
+    const patientConnected = users.patients.find(p => p.userId === patient.userId);
+    const medicConnected = users.medics.find(m => m.userId === medic.userId);
+
+    patientConnected? patientConnected.medicAssigned = medicConnected : null;
+    medicConnected? medicConnected.patientAssigned = patientConnected : null; 
+
+    medic.patientAssigned = patientConnected;
+    patient.medicAssigned = medicConnected;
+}
+
+
+const setAssignedMedicToPatient = async (medic, patient) => {
+    const patientConnected = users.patients.find(p => p.userId === patient.userId);
+    const medicConnected = users.medics.find(m => m.userId === medic.userId);
+
+    patientConnected.medicAssigned = medicConnected;
+    medicConnected.patientAssigned = patientConnected;
+
+    medic.patientAssigned = patientConnected;
+    patient.medicAssigned = medicConnected;
+}
+
+
+
+/**
+ * 
+ * @param {MedicConnected} MEDIC 
+ */
 
 
 /**
@@ -124,20 +191,54 @@ const isUserAlreadyConnected = async (user) => {
  * @property {string} type
  * @property {Number} userId
  * @property {Socket} socket
+ * @property {String} location
+ */
+
+/**
+ * @class
+ * @extends {UserConnected}
+ * @typedef {Object} MedicConnected
+ * @property {string} type
+ * @property {Number} userId
+ * @property {Socket} socket
+ * @property {UserConnected} patientAssigned
+ * @property {String} location
+ */
+
+/**
+ * @class
+ * @extends {UserConnected}
+ * @typedef {Object} PatientConnected
+ * @property {string} type
+ * @property {Number} userId
+ * @property {Socket} socket
+ * @property {UserConnected} medicAssigned
+ * @property {String} location
+ */
+
+/**
+ * 
+ * @param {PatientConnected} ejemplo 
  */
 
 /**
  * @typedef {Object} ListOfUsers
  * @property {number} amountOfUsers
- * @property {UserConnected[]} patients
- * @property {UserConnected[]} medics
+ * @property {PatientConnected[]} patients
+ * @property {MedicConnected[]} medics
  */
+
+
 
 module.exports = {
     registerUserConnection,
-    getAllPatients,
+    getAllConnectedPatients,
     removeConnectedUser,
-    getAllmedics,
-    getAllConnectedUsers
+    getAllConnectedMedics,
+    getAllConnectedUsers,
+    getConnectedPatientById,
+    getConnectedMedicById,
+    setAssignedPatientToMedic,
+    setAssignedMedicToPatient
 
 };
