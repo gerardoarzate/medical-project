@@ -87,6 +87,15 @@ const getAllPendingRequests = async () => {
 };
 
 
+/**
+ * 
+ * @param {Number} medicId 
+ * @param {Number} requestId 
+ * @returns {Promise<Void>}
+ */
+const assignMedicToRequest = async (medicId, requestId) => {
+    return await requestRepository.assignMedicToRequest(medicId, requestId);
+};
 
 
 
@@ -127,5 +136,6 @@ module.exports = {
     getAssignedRequestByMedicId,
     getAssignedRequestByPatientId,
     endRequest,
-    getAllPendingRequests
+    getAllPendingRequests,
+    assignMedicToRequest,
 };
