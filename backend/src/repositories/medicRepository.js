@@ -55,9 +55,34 @@ const getMedicById = async (id) => {
     };
 };
 
+/**
+ * 
+ * @param {Number} medicId
+ * @returns {Promise<{id: number, name: number, email: string, telephone: string, licence: string, idSpeciality: number} | null>}
+ */
+const getMedicDataById = async (medicId)=>{
 
+    const query = `
+        SELECT u.id, u.nombre, u.apellidos, u.email, u.telefono, m.cedula, m.id_especialidad as especialidad
+        FROM usuarios u
+        INNER JOIN medicos m ON m.id_usuario = u.id
+        where m.id_usuario = ?
+    `;
+    const [result] = await db.query(query, [medicId]);
+    const medic = result[0];
+    return !medic ? null : {
+        id: medic.id,
+        name: medic.nombre,
+        email: medic.email,
+        telephone: medic.telefono,
+        licence: medic.cedula,
+        idSpeciality: medic.especialidad
+    }
+};
 
 module.exports = {
     createMedic,
-    getMedicById
+    getMedicById,
+    getMedicDataById
+
 }
