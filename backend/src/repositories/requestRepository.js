@@ -156,6 +156,19 @@ const getAssignedRequestByPatientId = async (patientId) => {
 };
 
 
+
+/**
+ * 
+ * @param {Number} requestId 
+ * @param {Number} medicId 
+ * @returns {Promise<void>}
+ */
+const assignMedicToRequest = async (requestId, medicId) => {
+    const query = 'UPDATE solicitudes SET id_medico = ?, estado = ? WHERE id = ?';
+    await db.query(query, [medicId, typeOfRequest.ASIGNADA, requestId]);
+}
+
+
 /**
  * 
  * @param {Number} requestId 
@@ -226,5 +239,6 @@ module.exports = {
     getAssignedRequestByMedicId,
     getAssignedRequestByPatientId,
     endRequest,
+    assignMedicToRequest
 
 };
