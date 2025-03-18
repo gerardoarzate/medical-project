@@ -1,5 +1,8 @@
 const { Socket, Server } = require("socket.io");
+const patientRepository = require("../repositories/patientRepository");
 const requestService = require("./requestService");
+const medicService = require("./medicService");
+const distanceCalculator = require("../utils/distanceCalculator");
 const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 1700; // 1.7 seconds
 /**
  * @type {ListOfUsers}
@@ -12,9 +15,48 @@ const users = {
 
 
 
-setInterval(async() => {
+setInterval(async () => {
 
-    // verify in DB if there are requests that can be assigned
+    const pendingRequests = await requestService.getAllPendingRequests();
+
+    // pendingRequests.forEach(async pendingRequest => 
+    for (const pendingRequest of pendingRequests) {
+
+        const medicCandidates = (await getAllConnectedMedics()).filter(candidate => (!candidate?.patientAssigned)); // connected medics without request or medics whose patient is disconnected
+
+
+
+        const candidates = []
+        for (const candidate of medicCandidates) {
+            const requestAssigned = await requestService.getAssignedRequestByMedicId(candidate.userId);
+            if (!requestAssigned) { // if the medic is not assigned to a request yet
+                const medic = await medicService.getMedicDataById(candidate.userId);
+                medic.emergenciesSpecialities.map(e => e.emergencyTypeId).includes(pendingRequest.emergencyId) ? candidates.push(medic) : null;
+            }
+        }
+
+        if (candidates.length > 0) {
+            let chosenMedic = await findClosestMedic(candidates, pendingRequest);
+            if (chosenMedic) {
+
+                await requestService.assignMedicToRequest(chosenMedic.userId, pendingRequest.id);
+                const patient = users.patients.find(p => p.userId === pendingRequest.patientId);
+                const patiendData = await patientRepository.getPatientById(pendingRequest.patientId); 
+                const messageToMedic = generateMessageFromCounterpartData({ type: 'PACIENTE', data: patiendData });
+                messageToMedic.notas = pendingRequest.notes;
+                chosenMedic.socket.emit('receiveCounterpartData', messageToMedic);
+                
+                if (patient) {
+                    await setAssignedPatientToMedic(patient, chosenMedic);
+                    await setAssignedPatientToMedic(patient, chosenMedic); // just one should be enough but just in case it fails
+                    
+                    const messageToPatient = generateMessageFromCounterpartData({ type: 'MEDICO', data: chosenMedic });
+                    patient.socket.emit('receiveCounterpartData', messageToPatient);
+                }
+            }
+        }
+    };
+    // verify in DB if there are requests that can be assigned                      OK
     // if there are, assign them
     // when a request is assigned, send a message to the medic and the patient
     // and add each other socket to the userConnected object of each user (medic to patient and patient to medic)
@@ -94,7 +136,7 @@ const getAllConnectedUsers = async () => {
  * @returns {Promise<PatientConnected | undefined>}
  */
 const getConnectedPatientById = async (patientId) => {
-    return {...users.patients.find(p => p.userId === patientId)};
+    return { ...users.patients.find(p => p.userId === patientId) };
 };
 
 /**
@@ -103,7 +145,7 @@ const getConnectedPatientById = async (patientId) => {
  * @returns {Promise<MedicConnected | undefined>}
  */
 const getConnectedMedicById = async (medicId) => {
-    return {...users.medics.find(m => m.userId === medicId)};
+    return { ...users.medics.find(m => m.userId === medicId) };
 };
 
 
@@ -151,13 +193,17 @@ const sameUserAlreadyConnected = async (user) => {
 
 
 
-
+/**
+ * 
+ * @param {PatientConnected} patient 
+ * @param {MedicConnected} medic 
+ */
 const setAssignedPatientToMedic = async (patient, medic) => {
     const patientConnected = users.patients.find(p => p.userId === patient.userId);
     const medicConnected = users.medics.find(m => m.userId === medic.userId);
 
-    patientConnected? patientConnected.medicAssigned = medicConnected : null;
-    medicConnected? medicConnected.patientAssigned = patientConnected : null; 
+    patientConnected ? patientConnected.medicAssigned = medicConnected : null;
+    medicConnected ? medicConnected.patientAssigned = patientConnected : null;
 
     medic.patientAssigned = patientConnected;
     patient.medicAssigned = medicConnected;
@@ -184,9 +230,9 @@ const setAssignedMedicToPatient = async (medic, patient) => {
 const updateLocation = async (userConnected, location) => {
     userConnected.location = location
 
-    if(userConnected.type === 'MEDICO'){
+    if (userConnected.type === 'MEDICO') {
         users.medics.find(m => m.userId === userConnected.userId).location = location;
-    }else{
+    } else {
         users.patients.find(p => p.userId === userConnected.userId).location = location;
     }
 };
@@ -229,6 +275,93 @@ const removeRelation = (userConnected) => {
 
 
 
+
+
+/**
+ * 
+ * @param {MedicDataWithSpecilities[]} medics 
+ * @param {Request} request 
+ * @returns {Promise<MedicConnected | null>}
+ */
+const findClosestMedic = async (medics, request) => {
+
+    let closest = null;
+    let distance = 0;
+
+    let requestLatitude = request?.initialLocation?.split(',')[0];
+    let requestLongitude = request?.initialLocation?.split(',')[1];
+
+    for (const medic of medics) {
+        const medicConnected = users.medics.find(m => m.userId === medic.id);
+        if (!medicConnected) continue;
+        if (!medicConnected.location) continue;
+        if (!closest) {
+            closest = medicConnected;
+            continue;
+        } else {
+            const newDistance = distanceCalculator(
+                medicConnected?.location?.currentLatitude,
+                medicConnected?.location?.currentLongitude,
+                requestLatitude,
+                requestLongitude
+            );
+            if (newDistance < distance) {
+                closest = medicConnected;
+                distance = newDistance;
+            }
+        }
+
+    }
+    return closest;
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * 
+ * @param {{data: (MedicData | PatientData) type: string}} recipientData 
+ */
+const generateMessageFromCounterpartData = (recipientData) => {
+    if (recipientData.type == 'MEDICO') {
+
+        return {
+            fullname: recipientData.data.lastname + ' ' + recipientData.data.name,
+            licence: recipientData.data.licence,
+            speciality: recipientData.data.speciality,
+            telephone: recipientData.data.telephone
+        }
+    } else if (recipientData.type == 'PACIENTE') {
+        return {
+            fullname: recipientData.data.lastname + ' ' + recipientData.data.name,
+            height: recipientData.data.height,
+            weight: recipientData.data.weight,
+            age: recipientData.data.age,
+            sex: recipientData.data.sex,
+            telephone: recipientData.data.telephone,
+        }
+    }
+    return { message: 'Usario no valido' }
+
+};
+
+
+
 /**
  * 
  * @param {MedicConnected} MEDIC 
@@ -257,7 +390,7 @@ const removeRelation = (userConnected) => {
  * @property {Number} userId
  * @property {Socket} socket
  * @property {UserConnected} patientAssigned
- * @property {String} location
+ * @property {{currentLatitude: Number, currentLongitude: Number}} location
  */
 
 /**
@@ -268,7 +401,7 @@ const removeRelation = (userConnected) => {
  * @property {Number} userId
  * @property {Socket} socket
  * @property {UserConnected} medicAssigned
- * @property {String} location
+ * @property {{currentLatitude: Number, currentLongitude: Number}} location
  */
 
 /**
@@ -282,6 +415,46 @@ const removeRelation = (userConnected) => {
  * @property {PatientConnected[]} patients
  * @property {MedicConnected[]} medics
  */
+
+
+
+/**
+ * @typedef {Object} Request
+ * @property {Number} id
+ * @property {Number} emergencyId
+ * @property {Number} medicId
+ * @property {Number} patientId
+ * @property {Date} date
+ * @property {string} initialLocation
+ * @property {string} status
+ * @property {string} notes
+ * 
+ */
+
+
+
+/**
+ * @typedef {Object} SpecialityTypeEmergency
+ * @property {Number} id
+ * @property {Number} specialityId
+ * @property {Number} emergencyTypeId
+ * 
+ */
+
+// {id: number, name: number, email: string, telephone: string, licence: string, idSpeciality: number, }
+/**
+ * @typedef {Object} MedicDataWithSpecilities
+ * @property {number} id
+ * @property {string} name
+ * @property {string} email
+ * @property {string} telephone
+ * @property {string} licence
+ * @property {number} idSpeciality
+ * @property {SpecialityTypeEmergency[]} emergenciesSpecialities
+ */
+
+
+
 
 
 
