@@ -58,7 +58,7 @@ const getMedicById = async (id) => {
 /**
  * 
  * @param {Number} medicId
- * @returns {Promise<{id: number, name: number, email: string, telephone: string, licence: string, idSpeciality: number} | null>}
+ * @returns {Promise<{id: number, name: number, lastname: string, email: string, telephone: string, licence: string, idSpeciality: number} | null>}
  */
 const getMedicDataById = async (medicId)=>{
 
@@ -73,6 +73,7 @@ const getMedicDataById = async (medicId)=>{
     return !medic ? null : {
         id: medic.id,
         name: medic.nombre,
+        lastname: medic.apellidos,
         email: medic.email,
         telephone: medic.telefono,
         licence: medic.cedula,
