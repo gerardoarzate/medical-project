@@ -11,10 +11,6 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radio de la Tierra en kilómetros
     const rad = Math.PI / 180; // Conversión de grados a radianes
 
-    lat1 = null
-    lon1 = null
-    lat2 = null
-    lon2 = null
 
 
     try{
