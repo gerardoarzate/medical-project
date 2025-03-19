@@ -4,9 +4,9 @@ const requestService = require("./requestService");
 const medicService = require("./medicService");
 const medicRepository = require('../repositories/medicRepository');
 const distanceCalculator = require("../utils/distanceCalculator");
-// const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 1700; // 1.7 seconds
+const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 1700; // 1.7 seconds
 // const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 7000; // 7 seconds
-const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 20_000; // 20 seconds
+// const TIME_TO_VERIFY_IF_REQUESTS_CAN_BE_ASSIGNED = 20_000; // 20 seconds
 /**
  * @type {ListOfUsers}
  */
