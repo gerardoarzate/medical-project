@@ -33,7 +33,8 @@ async function startServer() {
     app.use(patientRoutes);
     app.use(specialityRoutes);
     io.on('connection', socketController(io));
-    app.use( require('./test/connectedUsersEndpoint') || ((req, res, next)=>{next()}) ) // DELETE TEST
+    
+    app.use( (()=>{try{return require('./test/connectedUsersEndpoint')}catch(e){return (req, res, next)=>{next()}}})()  ) // DELETE TEST
     
     app.use(authMiddleware);
     // routes which need authentication
