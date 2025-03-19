@@ -293,7 +293,6 @@ const removeRelation = (userConnected) => {
 const findClosestMedic = async (medics, targetLocation) => {
 
     
-    console.log('UBICACION DEL PACIENTE(default o real): ',JSON.stringify(targetLocation));
     let closest = null;
     let distance = 0;
 
