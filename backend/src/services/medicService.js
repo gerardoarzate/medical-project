@@ -7,11 +7,13 @@ const specialityRepository = require('../repositories/specialityRepository');
  * @returns {Promise<MedicDataWithSpecilities | null>}
  */
 const getMedicDataById = async (medicId)=>{
-    const medic = await medicRepository.getMedicDataById(medicId); !medic ? null : {};
+    const medic = await medicRepository.getMedicDataById(medicId); 
     const emergenciesSpecialities = await specialityRepository.getSpecilitiesAndEmergenciesAssociatedWithMedicData(medicId);
+
     return {
         id: medic.id,
         name: medic.name,
+        lastname: medic.lastname,
         email: medic.email,
         telephone: medic.telephone,
         licence: medic.licence,
