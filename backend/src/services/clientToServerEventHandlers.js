@@ -73,14 +73,14 @@ module.exports = async (socket, io, user) => {
                 if(userConnected.type == 'MEDICO'){
                     const patient = await userService.getConnectedPatientById(userConnected?.patientAssigned?.userId);
                     if(patient){
-                        patient.socket.emit('alert', 'El medico se ha desconectado');
-                        patient.socket.emit('updateCounterpartLocation', {isOnline: false});
+                        patient.socket?.emit('alert', 'El medico se ha desconectado');
+                        patient.socket?.emit('updateCounterpartLocation', {isOnline: false});
                     }
                 }else if(userConnected.type == 'PACIENTE'){
                     const medic = await userService.getConnectedMedicById(userConnected?.medicAssigned?.userId);
                     if(medic){
-                        medic.socket.emit('alert', 'El paciente se ha desconectado');
-                        medic.socket.emit('updateCounterpartLocation', {isOnline: false});
+                        medic.socket?.emit('alert', 'El paciente se ha desconectado');
+                        medic.socket?.emit('updateCounterpartLocation', {isOnline: false});
                     }
                 }
             }
@@ -161,9 +161,9 @@ module.exports = async (socket, io, user) => {
                 userConnected.socket.emit('isRequestCompleted', {});
 
                 const patient = await userService.getConnectedPatientById(request.patientId);
-                patient.socket.emit('isRequestCompleted', {});
+                patient?.socket?.emit('isRequestCompleted', {});
 
-                await userService.removeRelation(userConnected);
+                userService.removeRelation(userConnected);
             };
         }
 
