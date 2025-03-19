@@ -163,7 +163,7 @@ const getAssignedRequestByPatientId = async (patientId) => {
  * @param {Number} medicId 
  * @returns {Promise<void>}
  */
-const assignMedicToRequest = async (requestId, medicId) => {
+const assignMedicToRequest = async (medicId, requestId) => {
     const query = 'UPDATE solicitudes SET id_medico = ?, estado = ? WHERE id = ?';
     await db.query(query, [medicId, typeOfRequest.ASIGNADA, requestId]);
 }
