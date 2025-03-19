@@ -32,7 +32,12 @@ const sendPendingRequestIfExist = async (userConnected) => {
         const medicAssigned = (await userService.getAllConnectedMedics()).find(medic => medic.userId == medicData.id);
         if (medicAssigned) {
             userService.setAssignedMedicToPatient(medicAssigned, userConnected);
+            medicAssigned?.socket?.emit('updateCounterpartLocation', {isOnline: true, ...userConnected.location});
+            userConnected.socket.emit('updateCounterpartLocation', {isOnline: true, ...medicAssigned.location});
+            return;
         }
+        userConnected.socket.emit('updateCounterpartLocation', {isOnline: false});
+
     } else if (userConnected.type == 'MEDICO') {
         const requestAssigned = await requestService.getAssignedRequestByMedicId(userConnected.userId);
         if (!requestAssigned) return;
@@ -44,7 +49,11 @@ const sendPendingRequestIfExist = async (userConnected) => {
         const patientAssigned = (await userService.getAllConnectedPatients()).find(patient => patient.userId == patientData.id);
         if (patientAssigned) {
             userService.setAssignedPatientToMedic(patientAssigned, userConnected);
+            patientAssigned?.socket?.emit('updateCounterpartLocation', {isOnline: true, ...userConnected.location});
+            userConnected.socket.emit('updateCounterpartLocation', {isOnline: true, ...patientAssigned.location});
+            return;
         };
+        userConnected.socket.emit('updateCounterpartLocation', {isOnline: false});
     }
 
 };
