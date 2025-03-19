@@ -13,8 +13,10 @@ const onConnection = (io) =>{
     * @param {Socket} socket - El objeto socket que maneja la conexión de un cliente.
     */
     return async (socket) => {
-        const token = socket.handshake.auth.token;
+        const { token, currentLatitude, currentLongitude } = socket.handshake.auth;
         const user = authenticateUser(socket, token);
+        user.location = { currentLatitude, currentLongitude };
+        user.token = token;
         if(!user){
             return;
         }
@@ -99,9 +101,19 @@ const handlerPatientConnection =  (socket, user, io) => {
 }
 
 /**
+ * @typedef {Object} Location
+ * @property {Number} currentLatitudelatitude
+ * @property {Number} currentLongitude
+ */
+
+/**
  * @typedef {Object} User
  * @property {string} type
  * @property {Number} userId
+ * @property {string} token
+ * @property {Location | undefined} location
  */
+
+
 
 module.exports = onConnection;
