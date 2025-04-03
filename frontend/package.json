@@ -13,7 +13,8 @@
     "@capacitor/android": "^7.0.1",
     "@capacitor/core": "^7.0.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "reset-css": "^5.0.2"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.1",
