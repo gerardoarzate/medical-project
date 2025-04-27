@@ -19,4 +19,5 @@ html, body, #root {
 	font-family: 'Roboto', Arial, sans-serif;
 	font-size: 18px;
 	color: black;
+	user-select: none;
 }
