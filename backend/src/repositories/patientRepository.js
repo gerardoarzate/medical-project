@@ -21,7 +21,12 @@ const createPatient = async (patient) => {
     const insertPacientQuery = `
         INSERT INTO pacientes(id_usuario, curp, edad, sexo, peso, estatura) VALUES(?, ?, ?, ?, ?, ?)
     `;
-    await db.query(insertPacientQuery, [insertedId, patient.curp, patient.age, patient.sex, patient.weight, patient.height]);
+    try{
+        await db.query(insertPacientQuery, [insertedId, patient.curp, patient.age, patient.sex, patient.weight, patient.height]);
+    }catch{
+        await db.query(`DELETE FROM usuarios WHERE id = ?`, [insertedId]);
+        throw new Error("Error creating patient");
+    }
     return { id: insertedId, name: patient.name, lastname: patient.lastname, curp: patient.curp, age: patient.age}
 };
 
