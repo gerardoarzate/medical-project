@@ -35,7 +35,7 @@ CREATE TABLE `especialidad_tipo_emergencia` (
   CONSTRAINT `especialidad_tipo_emergencia_ibfk_2` FOREIGN KEY (`id_tipo_emergencia`) REFERENCES `tipo_emergencias` (`id`),
   CONSTRAINT `fk_especialidad` FOREIGN KEY (`id_especialidad`) REFERENCES `especialidades` (`id`),
   CONSTRAINT `fk_tipo_emergencia` FOREIGN KEY (`id_tipo_emergencia`) REFERENCES `tipo_emergencias` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -50,7 +50,7 @@ CREATE TABLE `especialidades` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nombre` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -115,7 +115,7 @@ CREATE TABLE `solicitudes` (
   CONSTRAINT `solicitudes_ibfk_1` FOREIGN KEY (`id_emergencia`) REFERENCES `tipo_emergencias` (`id`),
   CONSTRAINT `solicitudes_ibfk_2` FOREIGN KEY (`id_medico`) REFERENCES `medicos` (`id_usuario`),
   CONSTRAINT `solicitudes_ibfk_3` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id_usuario`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -132,7 +132,7 @@ CREATE TABLE `tipo_emergencias` (
   `nombre` varchar(50) NOT NULL,
   `descripcion` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -152,7 +152,7 @@ CREATE TABLE `usuarios` (
   `password` varchar(100) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 
@@ -239,3 +239,43 @@ DELIMITER ;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-04-29 11:43:28
+
+-- POPULATE DATABASE ------
+
+INSERT INTO especialidades (nombre) VALUES
+('Médico General'),
+('Enfermero'),
+('Pediatra'),
+('Geriatra'),
+('Fisioterapeuta');
+
+INSERT INTO tipo_emergencias (nombre, descripcion) VALUES
+('Lesiones y Cortes', 'Si te has caído, golpeado o tienes un corte que sangra o duele.'),
+('Problemas del Corazón y del Azúcar', 'Si sientes dolor en el pecho, mareos o notas que tu presión o nivel de azúcar están muy altos.'),
+('Dificultades para Respirar', 'Si te cuesta respirar, sientes que te falta el aire o tienes un ataque de asma.'),
+('Problemas del Cerebro o Convulsiones', 'Si sufres convulsiones, pierdes el conocimiento o notas cambios bruscos en tu forma de reaccionar.'),
+('Infecciones y Fiebre Alta', 'Si tienes una fiebre muy alta o síntomas de infección que te hacen sentir muy mal.'),
+('Problemas Relacionados con la Edad', 'Si eres adulto mayor y presentas caídas frecuentes, confusión o debilidad repentina, o si eres niño y tienes síntomas inusuales.'),
+('Recuperación y Rehabilitación', 'Si te estás recuperando de una lesión, cirugía o accidente y necesitas ayuda para recuperar fuerza y movilidad.');
+
+INSERT INTO especialidad_tipo_emergencia (id_especialidad, id_tipo_emergencia) VALUES
+-- Lesiones y Cortes (ID 1)
+(1, 1), (2, 1), (5, 1),
+
+-- Problemas del Corazón y del Azúcar (ID 2)
+(1, 2), (2, 2), (3, 2), (4, 2),
+
+-- Dificultades para Respirar (ID 3)
+(1, 3), (2, 3), (3, 3), (4, 3),
+
+-- Problemas del Cerebro o Convulsiones (ID 4)
+(1, 4), (3, 4), (4, 4),
+
+-- Infecciones y Fiebre Alta (ID 5)
+(1, 5), (2, 5), (3, 5), (4, 5),
+
+-- Problemas Relacionados con la Edad (ID 6)
+(1, 6), (3, 6), (4, 6),
+
+-- Recuperación y Rehabilitación (ID 7)
+(1, 7), (5, 7);
