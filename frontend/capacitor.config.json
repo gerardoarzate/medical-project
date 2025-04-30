@@ -1,5 +1,5 @@
 {
-  "appId": "com.example.medicalapp",
-  "appName": "frontend",
+  "appId": "com.example.aramedic",
+  "appName": "Aramedic",
   "webDir": "dist"
 }

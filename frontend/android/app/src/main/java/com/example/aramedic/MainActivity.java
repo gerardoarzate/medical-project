@@ -1,4 +1,4 @@
-package com.example.medicalapp;
+package com.example.aramedic;
 
 import com.getcapacitor.BridgeActivity;
 
