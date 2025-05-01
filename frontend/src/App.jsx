@@ -11,6 +11,7 @@ import { ChatPage } from './routes/ChatPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { useState } from "react";
 import { APIContext } from './contexts/APIContext';
+import { FetchAPIProvider } from "./contexts/FetchAPIContext";
 const defaultApiUrl = import.meta.env.VITE_API_URL;
 
 export const App = () => {
@@ -18,21 +19,23 @@ export const App = () => {
 	
     return (
 		<APIContext.Provider value={{ apiUrl, setApiUrl }}>
-			<BrowserRouter>
-				<Routes>
-					<Route index element={<IndexPage />} />
-					<Route path="login" element={<LoginPage />} />
-					<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
-					<Route path="signup-patient" element={<PatientSignUpPage />} />
-					<Route path="navigation" element={<Layout />}>
-						<Route index element={<AssistancePage />} />
-						<Route path="assistance" element={<AssistancePage />} />
-						<Route path="counterpart" element={<CounterpartPage />} />
-						<Route path="chat" element={<ChatPage />} />
-						<Route path="profile" element={<ProfilePage />} />
-					</Route>
-				</Routes>
-			</BrowserRouter>
+			<FetchAPIProvider>
+				<BrowserRouter>
+					<Routes>
+						<Route index element={<IndexPage />} />
+						<Route path="login" element={<LoginPage />} />
+						<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
+						<Route path="signup-patient" element={<PatientSignUpPage />} />
+						<Route path="navigation" element={<Layout />}>
+							<Route index element={<AssistancePage />} />
+							<Route path="assistance" element={<AssistancePage />} />
+							<Route path="counterpart" element={<CounterpartPage />} />
+							<Route path="chat" element={<ChatPage />} />
+							<Route path="profile" element={<ProfilePage />} />
+						</Route>
+					</Routes>
+				</BrowserRouter>
+			</FetchAPIProvider>
 		</APIContext.Provider>
     );
 };
