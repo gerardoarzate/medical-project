@@ -4,19 +4,22 @@ const { generateToken } = require("../utils/tokenUtils");
 
 const createPatient = async (req, res, next) => {
     const patient = req.body;
-    if(!patient.name ||
+    if(
+        !patient ||
+        !patient.name ||
         !patient.lastname ||
         !patient.password ||
         !patient.curp ||
         !patient.age ||
-        !patient ||
-        patiend.sex !== 'M' && patient.sex !== 'F' ||
+        !['M', 'F'].includes(patient.sex) ||
         !patient.height ||
         !patient.weight ||
         !patient.email ||
         !patient.telephone
     ){
-
+        return res.status(400).json({
+            message: 'Petición incorrecta'
+        });
     }
     try{
 
