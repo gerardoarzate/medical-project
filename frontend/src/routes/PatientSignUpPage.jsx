@@ -1,17 +1,18 @@
 import styles from './PatientSignUpPage.module.css';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { BackButton } from '../components/BackButton';
 import { Input } from '../components/Input';
 import { SegmentedControl } from '../components/SegmentedControl';
+import { Dialog } from '@capacitor/dialog';
+import { useAPI } from '../contexts/APIContext';
 
 export const PatientSignUpPage = () => {
-    const navigate = useNavigate();
+    const { fetchApi } = useAPI();
     const sexOptions = ['Masculino', 'Femenino'];
     const [formData, setFormData] = useState({
         name: '',
-        lastName: '',
+        lastname: '',
         curp: '',
         sex: undefined,
         age: '',
@@ -22,8 +23,52 @@ export const PatientSignUpPage = () => {
         password: ''
     });
 
+    const isFormDataValid = (formData) => {
+        return (
+            formData.name &&
+            formData.lastname &&
+            formData.curp &&
+            formData.sex &&
+            formData.age &&
+            formData.height &&
+            formData.weight &&
+            formData.telephone &&
+            formData.email &&
+            formData.password
+        );
+    }
+
     const onConfirm = () => {
-        navigate('/navigation/assistance');
+        if (!isFormDataValid(formData)) {
+            Dialog.alert({
+                title: 'Datos incorrectos',
+                message: 'Verifica los datos y vuelve a intentarlo'
+            });
+            return;
+        }
+
+        const requestBody = { ...formData }
+        requestBody.sex = formData.sex.toLowerCase() == 'masculino' ? 'M' : 'F';
+        requestBody.age = Number(formData.age);
+        requestBody.weight = Number(formData.weight);
+        requestBody.height = Number(formData.height);
+
+        fetchApi('patients', 'POST', requestBody)
+            .then(async res => {
+                await Dialog.alert({
+                    title: '¡Bienvenido!',
+                    message: 'Registro exitoso.'
+                });
+                localStorage.setItem('token', res.token);
+                location.replace('/navigation'); // Full page reload
+            })
+            .catch(error => {
+                console.log(error.message);
+                Dialog.alert({
+                    title: 'No ha sido posible hacer el registro',
+                    message: 'Por favor, vuelve a intentarlo'
+                });
+            });
     };
 
     return (
@@ -46,9 +91,9 @@ export const PatientSignUpPage = () => {
             <Input
                 color='var(--secondary)'
                 label='Apellido(s)'
-                name='lastName'
+                name='lastname'
                 type='text'
-                value={formData.lastName}
+                value={formData.lastname}
                 setterFunction={setFormData}
             />
             <Input
