@@ -1,4 +1,4 @@
-const logout = ({ redirectTo }) => {
+export const logout = ({ redirectTo }) => {
     if (localStorage.getItem('token')) {
         localStorage.removeItem('token');
     }
@@ -7,5 +7,3 @@ const logout = ({ redirectTo }) => {
         location.assign(redirectTo);
     }
 };
-
-export default logout;

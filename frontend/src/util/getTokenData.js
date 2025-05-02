@@ -1,4 +1,4 @@
-const getTokenData = () => {
+export const getTokenData = () => {
     try {
         const encodedToken = localStorage.getItem('token');
         const payload = encodedToken.split('.')[1];
@@ -9,5 +9,3 @@ const getTokenData = () => {
         return false;
     }
 };
-
-export default getTokenData;
