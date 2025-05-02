@@ -1,16 +1,22 @@
 import styles from './ClinicianSignUpPage.module.css';
 import { BackButton } from '../components/BackButton';
 import { Input } from '../components/Input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '../components/Button';
 import { Select } from '../components/Select';
+import { InfoItem } from '../components/InfoItem';
+import { Dialog } from '@capacitor/dialog';
+import { useAPI } from '../contexts/APIContext';
 
 export const ClinicianSignUpPage = () => {
+    const { fetchApi } = useAPI();
     const navigate = useNavigate();
+
+    const [specialities, setSpecialities] = useState();
     const [formData, setFormData] = useState({
         name: '',
-        lastName: '',
+        lastname: '',
         licence: '',
         speciality: '',
         telephone: '',
@@ -18,10 +24,68 @@ export const ClinicianSignUpPage = () => {
         password: ''
     });
 
+    useEffect(() => {
+        fetchApi('specialities')
+            .then(res => {
+                setSpecialities(res.specialities);
+            })
+            .catch(async error => {
+                await Dialog.alert({
+                    title: 'Error',
+                    message: 'No se ha podido obtener la lista de especialidades, intenta de nuevo'
+                });
+                navigate('/');
+                throw new Error(`Unable to fetch specialities: ${error.message}`);
+            })
+    }, []);
+
+    const isFormDataValid = (formData) => {
+        return (
+            formData.name &&
+            formData.lastname &&
+            formData.licence &&
+            formData.speciality &&
+            formData.telephone &&
+            formData.email &&
+            formData.password
+        );
+    }
+
     const onConfirm = () => {
-        console.log(formData);
-        navigate('/navigation/assistance');
-    };
+        const chosenSpecialityObj = specialities.find(s => s.name == formData.speciality);
+        const specialityId = chosenSpecialityObj?.id;
+
+        if (!isFormDataValid(formData) || !specialityId) {
+            Dialog.alert({
+                title: 'Datos incorrectos',
+                message: 'Verifica los datos y vuelve a intentarlo'
+            });
+            return;
+        }
+
+        const requestBody = {
+            ...formData,
+            idSpeciality: specialityId
+        };
+        requestBody.speciality = undefined;
+
+        fetchApi('medics', 'POST', requestBody)
+            .then(async res => {
+                await Dialog.alert({
+                    title: '¡Bienvenido!',
+                    message: 'Registro exitoso.'
+                });
+                localStorage.setItem('token', res.token);
+                location.replace('/navigation'); // Full page reload
+            })
+            .catch(error => {
+                console.log(error.message);
+                Dialog.alert({
+                    title: 'No ha sido posible hacer el registro',
+                    message: 'Por favor, vuelve a intentarlo'
+                });
+            });
+    }
 
     return (
         <main className={styles.clinicianSignUpPage}>
@@ -43,9 +107,9 @@ export const ClinicianSignUpPage = () => {
             <Input
                 color='var(--secondary)'
                 label='Apellido(s)'
-                name='lastName'
+                name='lastname'
                 type='text'
-                value={formData.lastName}
+                value={formData.lastname}
                 setterFunction={setFormData}
             />
             <Input
@@ -56,18 +120,21 @@ export const ClinicianSignUpPage = () => {
                 value={formData.licence}
                 setterFunction={setFormData}
             />
-            <Select
-                color='var(--secondary)'
-                label='Especialidad'
-                name='speciality'
-                value={formData.speciality}
-                setterFunction={setFormData}
-                options={[
-                    'Opción 1',
-                    'Opción 2',
-                    'Opción 3'
-                ]}
-            />
+            { specialities ? (
+                    <Select
+                        color='var(--secondary)'
+                        label='Especialidad'
+                        name='speciality'
+                        value={formData.speciality}
+                        setterFunction={setFormData}
+                        options={specialities.map(s => s.name)}
+                    />
+                ) : (
+                    <InfoItem label={'Especialidad'} textColor={'#555'}>
+                        Cargando especialidades...
+                    </InfoItem>
+                )
+            }
             <Input
                 color='var(--secondary)'
                 label='Número telefónico'
