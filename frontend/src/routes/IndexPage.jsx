@@ -5,12 +5,20 @@ import { useNavigate } from 'react-router';
 import { BigButton } from '../components/BigButton';
 import Logo from '../assets/logo.svg?react';
 import styles from './IndexPage.module.css';
+import SettingsIcon from '../assets/material-symbols--settings-rounded.svg?react';
 
 export const IndexPage = () => {
     const navigate = useNavigate();
 
     return (
         <main className={styles.indexPage}>
+            <div
+                className={styles.settingsContainer}
+                onClick={() => navigate('/app-settings')}
+            >
+                <SettingsIcon />
+            </div>
+
             <div className={styles.logoSection}>
                 <div className={styles.logoContainer}>
                     <Logo/>

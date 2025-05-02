@@ -1,6 +1,22 @@
 .indexPage {
+    position: relative;
     display: flex;
     flex-direction: column;
+    height: 100%;
+}
+
+.settingsContainer {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    width: 32px;
+    height: 32px;
+    opacity: 0.5;
+    color: var(--secondary);
+}
+
+.settingsContainer > * {
+    width: 100%;
     height: 100%;
 }
 

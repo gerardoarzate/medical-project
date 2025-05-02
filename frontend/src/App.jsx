@@ -9,6 +9,7 @@ import { CounterpartPage } from './routes/CounterpartPage';
 import { ChatPage } from './routes/ChatPage';
 import { ProfilePage } from './routes/ProfilePage';
 import { APIProvider } from './contexts/APIContext';
+import { SettingsPage } from "./routes/SettingsPage";
 
 export const App = () => {
     return (
@@ -19,6 +20,7 @@ export const App = () => {
 					<Route path="login" element={<LoginPage />} />
 					<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
 					<Route path="signup-patient" element={<PatientSignUpPage />} />
+					<Route path="app-settings" element={<SettingsPage />} />
 					<Route path="navigation" element={<Layout />}>
 						<Route index element={<AssistancePage />} />
 						<Route path="assistance" element={<AssistancePage />} />
