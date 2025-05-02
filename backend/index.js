@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const socketIOServer = require('socket.io');
 const app = express();
 
@@ -24,7 +25,7 @@ async function startServer() {
     const io = socketIOServer(server);
     app.use(express.json());
 
-
+    app.use(cors());
 
     // routes which don't need authentication
     app.get('/', function (req, res) { res.sendFile(__dirname + '/' + 'test-index.html'); });
