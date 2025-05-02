@@ -5,10 +5,11 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { BackButton } from '../components/BackButton';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Dialog } from '@capacitor/dialog';
+import { useAPI } from '../contexts/APIContext';
 
 export const LoginPage = () => {
-    const navigate = useNavigate();
+    const { fetchApi } = useAPI();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -16,8 +17,18 @@ export const LoginPage = () => {
     });
 
     const onConfirm = () => {
-        console.log(formData);
-        navigate('/navigation/assistance');
+        fetchApi('login', 'POST', formData)
+            .then(async res => {
+                localStorage.setItem('token', res.token);
+                location.replace('/navigation'); // Full page reload
+            })
+            .catch(error => {
+                console.log(error.message);
+                Dialog.alert({
+                    title: 'No ha sido posible iniciar sesión',
+                    message: 'Verifica los datos y vuelve a intentarlo.'
+                });
+            });
     };
 
     return (
