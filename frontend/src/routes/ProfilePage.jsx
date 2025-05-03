@@ -2,7 +2,7 @@ import styles from './ProfilePage.module.css';
 import { PageTitle } from '../components/PageTitle';
 import { InfoItem } from '../components/InfoItem';
 import { useAPI } from '../contexts/APIContext';
-import { getTokenData } from '../util/getTokenData';
+import { useToken } from '../contexts/TokenContext';
 import { useState, useEffect } from 'react';
 import { Dialog } from '@capacitor/dialog';
 import { LogOutButton } from '../components/LogOutButton';
@@ -79,7 +79,7 @@ const patientItems = [
 
 export const ProfilePage = () => {
     const { fetchApi } = useAPI();
-    const userType = getTokenData()?.type;
+    const userType = useToken().tokenData?.type;
     const items = userType == 'MEDICO' ? clinicianItems : patientItems;
     const [userData, setUserData] = useState();
 

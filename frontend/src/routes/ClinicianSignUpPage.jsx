@@ -8,9 +8,11 @@ import { Select } from '../components/Select';
 import { InfoItem } from '../components/InfoItem';
 import { Dialog } from '@capacitor/dialog';
 import { useAPI } from '../contexts/APIContext';
+import { useToken } from '../contexts/TokenContext';
 
 export const ClinicianSignUpPage = () => {
     const { fetchApi } = useAPI();
+    const { setToken } = useToken();
     const navigate = useNavigate();
 
     const [specialities, setSpecialities] = useState();
@@ -75,8 +77,7 @@ export const ClinicianSignUpPage = () => {
                     title: '¡Bienvenido!',
                     message: 'Registro exitoso.'
                 });
-                localStorage.setItem('token', res.token);
-                location.replace('/navigation'); // Full page reload
+                setToken(res.token);
             })
             .catch(error => {
                 console.log(error.message);

@@ -7,9 +7,11 @@ import { BackButton } from '../components/BackButton';
 import { useState } from 'react';
 import { Dialog } from '@capacitor/dialog';
 import { useAPI } from '../contexts/APIContext';
+import { useToken } from '../contexts/TokenContext';
 
 export const LoginPage = () => {
     const { fetchApi } = useAPI();
+    const { setToken } = useToken();
 
     const [formData, setFormData] = useState({
         email: '',
@@ -19,8 +21,7 @@ export const LoginPage = () => {
     const onConfirm = () => {
         fetchApi('login', 'POST', formData)
             .then(async res => {
-                localStorage.setItem('token', res.token);
-                location.replace('/navigation'); // Full page reload
+                setToken(res.token);
             })
             .catch(error => {
                 console.log(error.message);

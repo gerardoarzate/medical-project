@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useToken } from "./TokenContext";
 const defaultApiUrl = import.meta.env.VITE_API_URL;
 
 const APIContext = createContext({
@@ -9,7 +10,7 @@ const APIContext = createContext({
 
 export const APIProvider = ({ children }) => {
     const [ apiUrl, setApiUrl ] = useState(defaultApiUrl);
-    const token = localStorage.getItem('token');
+    const { token } = useToken();
 
     if (!token) {
         console.log('fetchAPI has been initialized with no token');

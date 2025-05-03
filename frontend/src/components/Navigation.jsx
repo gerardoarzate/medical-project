@@ -5,7 +5,7 @@ import ChatIcon from '../assets/mynaui--message-solid.svg?react';
 import ProfileIcon from '../assets/iconamoon--profile-fill.svg?react';
 import ClinicianIcon from '../assets/maki--doctor.svg?react';
 import { NavigationItem } from './NavigationItem';
-import { getTokenData } from '../util/getTokenData';
+import { useToken } from '../contexts/TokenContext';
 
 const clinicianItems = [
 	{
@@ -54,7 +54,7 @@ const patientItems = [
 ];
 
 export const Navigation = () => {
-	const userType = getTokenData()?.type;
+	const userType = useToken().tokenData?.type;
 	const items = userType == 'MEDICO' ? clinicianItems : patientItems;
 
 	return (

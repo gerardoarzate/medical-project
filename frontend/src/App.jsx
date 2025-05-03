@@ -8,28 +8,31 @@ import { AssistancePage } from "./routes/AssistancePage";
 import { CounterpartPage } from './routes/CounterpartPage';
 import { ChatPage } from './routes/ChatPage';
 import { ProfilePage } from './routes/ProfilePage';
-import { APIProvider } from './contexts/APIContext';
 import { SettingsPage } from "./routes/SettingsPage";
+import { APIProvider } from './contexts/APIContext';
+import { TokenProvider } from "./contexts/TokenContext";
 
 export const App = () => {
     return (
-		<APIProvider>
-			<BrowserRouter>
-				<Routes>
-					<Route index element={<IndexPage />} />
-					<Route path="login" element={<LoginPage />} />
-					<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
-					<Route path="signup-patient" element={<PatientSignUpPage />} />
-					<Route path="app-settings" element={<SettingsPage />} />
-					<Route path="navigation" element={<Layout />}>
-						<Route index element={<AssistancePage />} />
-						<Route path="assistance" element={<AssistancePage />} />
-						<Route path="counterpart" element={<CounterpartPage />} />
-						<Route path="chat" element={<ChatPage />} />
-						<Route path="profile" element={<ProfilePage />} />
-					</Route>
-				</Routes>
-			</BrowserRouter>
-		</APIProvider>
+		<BrowserRouter>
+			<TokenProvider>
+				<APIProvider>
+					<Routes>
+						<Route index element={<IndexPage />} />
+						<Route path="login" element={<LoginPage />} />
+						<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
+						<Route path="signup-patient" element={<PatientSignUpPage />} />
+						<Route path="app-settings" element={<SettingsPage />} />
+						<Route path="navigation" element={<Layout />}>
+							<Route index element={<AssistancePage />} />
+							<Route path="assistance" element={<AssistancePage />} />
+							<Route path="counterpart" element={<CounterpartPage />} />
+							<Route path="chat" element={<ChatPage />} />
+							<Route path="profile" element={<ProfilePage />} />
+						</Route>
+					</Routes>
+				</APIProvider>
+			</TokenProvider>
+		</BrowserRouter>		
     );
 };

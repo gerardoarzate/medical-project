@@ -6,9 +6,11 @@ import { Input } from '../components/Input';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { Dialog } from '@capacitor/dialog';
 import { useAPI } from '../contexts/APIContext';
+import { useToken } from '../contexts/TokenContext';
 
 export const PatientSignUpPage = () => {
     const { fetchApi } = useAPI();
+    const { setToken } = useToken();
     const sexOptions = ['Masculino', 'Femenino'];
     const [formData, setFormData] = useState({
         name: '',
@@ -59,8 +61,7 @@ export const PatientSignUpPage = () => {
                     title: '¡Bienvenido!',
                     message: 'Registro exitoso.'
                 });
-                localStorage.setItem('token', res.token);
-                location.replace('/navigation'); // Full page reload
+                setToken(res.token);
             })
             .catch(error => {
                 console.log(error.message);

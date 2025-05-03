@@ -1,11 +1,13 @@
 import styles from './LogOutButton.module.css';
-import { logout } from '../util/logout';
+import { useToken } from '../contexts/TokenContext';
 
 export const LogOutButton = ({ children }) => {
+    const { setToken } = useToken();
+
     return (
         <p
             className={styles.logOutButton}
-            onClick={()=> logout({ redirectTo: '/' })}
+            onClick={()=> setToken(undefined) }
         >
             {children || 'Cerrar sesión'}
         </p>
