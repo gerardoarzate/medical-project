@@ -1,6 +1,6 @@
 import GeneralIcon from '../assets/fa6-solid--user-doctor.svg?react';
 import NurseIcon from '../assets/mingcute--nurse-fill.svg?react';
-import PediatricianIcon from '../assets/material-symbols--kid-star.svg?react';
+import PediatricianIcon from '../assets/mdi--kids-room.svg?react';
 import GeriatricianIcon from '../assets/material-symbols--elderly-rounded.svg?react';
 import PhysioIcon from '../assets/material-symbols--physical-therapy.svg?react';
 
