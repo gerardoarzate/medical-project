@@ -11,26 +11,29 @@ import { ProfilePage } from './routes/ProfilePage';
 import { SettingsPage } from "./routes/SettingsPage";
 import { APIProvider } from './contexts/APIContext';
 import { TokenProvider } from "./contexts/TokenContext";
+import { ProfileProvider } from "./contexts/ProfileContext";
 
 export const App = () => {
     return (
 		<BrowserRouter>
 			<TokenProvider>
 				<APIProvider>
-					<Routes>
-						<Route index element={<IndexPage />} />
-						<Route path="login" element={<LoginPage />} />
-						<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
-						<Route path="signup-patient" element={<PatientSignUpPage />} />
-						<Route path="app-settings" element={<SettingsPage />} />
-						<Route path="navigation" element={<Layout />}>
-							<Route index element={<AssistancePage />} />
-							<Route path="assistance" element={<AssistancePage />} />
-							<Route path="counterpart" element={<CounterpartPage />} />
-							<Route path="chat" element={<ChatPage />} />
-							<Route path="profile" element={<ProfilePage />} />
-						</Route>
-					</Routes>
+					<ProfileProvider>
+						<Routes>
+							<Route index element={<IndexPage />} />
+							<Route path="login" element={<LoginPage />} />
+							<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
+							<Route path="signup-patient" element={<PatientSignUpPage />} />
+							<Route path="app-settings" element={<SettingsPage />} />
+							<Route path="navigation" element={<Layout />}>
+								<Route index element={<AssistancePage />} />
+								<Route path="assistance" element={<AssistancePage />} />
+								<Route path="counterpart" element={<CounterpartPage />} />
+								<Route path="chat" element={<ChatPage />} />
+								<Route path="profile" element={<ProfilePage />} />
+							</Route>
+						</Routes>
+					</ProfileProvider>
 				</APIProvider>
 			</TokenProvider>
 		</BrowserRouter>		
