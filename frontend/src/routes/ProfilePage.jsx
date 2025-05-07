@@ -1,11 +1,11 @@
 import styles from './ProfilePage.module.css';
 import { PageTitle } from '../components/PageTitle';
 import { InfoItem } from '../components/InfoItem';
-import { useAPI } from '../contexts/APIContext';
 import { useToken } from '../contexts/TokenContext';
 import { useState, useEffect } from 'react';
 import { Dialog } from '@capacitor/dialog';
 import { LogOutButton } from '../components/LogOutButton';
+import { useProfile } from '../contexts/ProfileContext';
 
 const clinicianItems = [
     {
@@ -78,22 +78,9 @@ const patientItems = [
 ];
 
 export const ProfilePage = () => {
-    const { fetchApi } = useAPI();
     const userType = useToken().tokenData?.type;
     const items = userType == 'MEDICO' ? clinicianItems : patientItems;
-    const [userData, setUserData] = useState();
-
-    useEffect(() => {
-        fetchApi('profile')
-            .then(res => setUserData(res))
-            .catch(error => {
-                console.log(error.message);
-                Dialog.alert({
-                    title: 'Error',
-                    message: 'No ha sido posible cargar los datos del perfil.'
-                });
-            });
-    }, []);
+    const profile = useProfile();
 
     return (
         <main className={styles.profilePage}>
@@ -101,7 +88,7 @@ export const ProfilePage = () => {
             <div className={styles.infoContainer}>
                 { items.map(item => {
                     const { label, name, format } = item;
-                    let value = userData?.[name];
+                    let value = profile?.[name];
 
                     if (value != undefined && format) {
                         value = format(value);
