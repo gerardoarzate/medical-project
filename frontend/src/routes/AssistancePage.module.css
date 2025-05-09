@@ -1,3 +1,7 @@
+.assistancePage {
+    height: 100%;
+}
+
 .availableClinicianContent {
     display: flex;
     flex-direction: column;

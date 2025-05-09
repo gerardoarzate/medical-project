@@ -17,12 +17,27 @@ const AvailableClinicianView = ({ profile }) => (
 );
 
 export const AssistancePage = () => {
-    const { token } = useToken();
+    const { tokenData } = useToken();
     const profile = useProfile();
 
+    if (!tokenData) {
+        return;
+    }
+
+    const { type } = tokenData;
+    const isBusy = false;
+
     return (
-        <main>
-            <AvailableClinicianView profile={profile} />
+        <main className={styles.assistancePage}>
+            {
+                type == 'MEDICO' ? 
+                    isBusy ? 'busy clinician'
+                    : <AvailableClinicianView profile={profile} />
+                : type == 'PACIENTE' ?
+                    isBusy ? 'busy patient'
+                    : 'available patient'
+                : null
+            }
         </main>
     );
 }
