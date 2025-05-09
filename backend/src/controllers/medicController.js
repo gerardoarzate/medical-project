@@ -23,7 +23,7 @@ const createmedic = async (req, res, next) => {
         !medic.email ||
         !medic.licence ||
         !medic.idSpeciality ||
-        medic?.licence.length > 10
+        medic.licence.length > 10
     ){
         return res.status(400).json(BAD_REQUEST_RESPONSE);
     }

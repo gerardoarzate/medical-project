@@ -25,13 +25,13 @@ const createMedic = async (medic) => {
             INSERT INTO medicos(id_usuario, cedula, id_especialidad) VALUES(?, ?, ?)
         `;
         await db.query(insertMedicQuery, [insertedId, medic.licence, medic.idSpeciality]);
+        return { id: insertedId, name: medic.name, lastname: medic.lastname, telephone: medic.telephone, email: medic.email, licence: medic.licence, idSpeciality: medic.idSpeciality };
     }catch(error){
 
         insertedId != null? db.query("DELETE FROM usuarios WHERE id = ?", [insertedId]): null;
     
         throw new Error("Error creating medic");
     }
-    return { id: insertedId, name: medic.name, lastname: medic.lastname, telephone: medic.telephone, email: medic.email, licence: medic.licence, idSpeciality: medic.idSpeciality };
 
 };
 
