@@ -17,13 +17,20 @@ const createMedic = async (medic) => {
     const insertUserQuery = `
         INSERT INTO usuarios(nombre, apellidos, email, telefono, password) VALUES(?, ?, ?, ?, ?)
     `;
+    let insertedId = null;
+    try{
+        const [result] = await db.query(insertUserQuery, [medic.name, medic.lastname, medic.email, medic.telephone, passwordHashed]);
+        insertedId = result.insertId;
+        const insertMedicQuery = `
+            INSERT INTO medicos(id_usuario, cedula, id_especialidad) VALUES(?, ?, ?)
+        `;
+        await db.query(insertMedicQuery, [insertedId, medic.licence, medic.idSpeciality]);
+    }catch(error){
+
+        insertedId != null? db.query("DELETE FROM usuarios WHERE id = ?", [insertedId]): null;
     
-    const [result] = await db.query(insertUserQuery, [medic.name, medic.lastname, medic.email, medic.telephone, passwordHashed]);
-    const insertedId = result.insertId;
-    const insertMedicQuery = `
-        INSERT INTO medicos(id_usuario, cedula, id_especialidad) VALUES(?, ?, ?)
-    `;
-    await db.query(insertMedicQuery, [insertedId, medic.licence, medic.idSpeciality]);
+        throw new Error("Error creating medic");
+    }
     return { id: insertedId, name: medic.name, lastname: medic.lastname, telephone: medic.telephone, email: medic.email, licence: medic.licence, idSpeciality: medic.idSpeciality };
 
 };
