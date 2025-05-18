@@ -2,6 +2,10 @@ import styles from './AssistancePage.module.css';
 import { RoundedSpecialityHeader } from '../components/RoundedSpecialityHeader';
 import { useToken } from '../contexts/TokenContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { SpecialityHeader } from '../components/SpecialityHeader';
+import { Destination } from '../components/Destination';
+import { EmergencyDetails } from '../components/EmergencyDetails';
+import { Map } from '../components/Map';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -16,6 +20,17 @@ const AvailableClinicianView = ({ profile }) => (
     </>
 );
 
+const BusyClinicianView = ({ profile }) => (
+    <div className={styles.busyClinicianView}>
+        <SpecialityHeader speciality={profile?.speciality} name={profile?.name} />
+        <Destination destination={'Av. de las Ciencias, Facultad de Informática UAQ Campus Juriquilla'} />
+        <div className={styles.busyClinicianContent}>
+            <Map />
+            <EmergencyDetails emergencyType={'Tipo de emergencia'.toUpperCase()} reportTimestampInMs={Date.now()} />
+        </div>
+    </div>
+);
+
 export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
@@ -25,13 +40,13 @@ export const AssistancePage = () => {
     }
 
     const { type } = tokenData;
-    const isBusy = false;
+    const isBusy = true;
 
     return (
         <main className={styles.assistancePage}>
             {
                 type == 'MEDICO' ? 
-                    isBusy ? 'busy clinician'
+                    isBusy ? <BusyClinicianView profile={profile} />
                     : <AvailableClinicianView profile={profile} />
                 : type == 'PACIENTE' ?
                     isBusy ? 'busy patient'
