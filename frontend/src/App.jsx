@@ -12,6 +12,7 @@ import { SettingsPage } from "./routes/SettingsPage";
 import { APIProvider } from './contexts/APIContext';
 import { TokenProvider } from "./contexts/TokenContext";
 import { ProfileProvider } from "./contexts/ProfileContext";
+import { EmergencyTypesProvider } from "./contexts/EmergencyTypesContext";
 
 export const App = () => {
     return (
@@ -19,20 +20,22 @@ export const App = () => {
 			<TokenProvider>
 				<APIProvider>
 					<ProfileProvider>
-						<Routes>
-							<Route index element={<IndexPage />} />
-							<Route path="login" element={<LoginPage />} />
-							<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
-							<Route path="signup-patient" element={<PatientSignUpPage />} />
-							<Route path="app-settings" element={<SettingsPage />} />
-							<Route path="navigation" element={<Layout />}>
-								<Route index element={<AssistancePage />} />
-								<Route path="assistance" element={<AssistancePage />} />
-								<Route path="counterpart" element={<CounterpartPage />} />
-								<Route path="chat" element={<ChatPage />} />
-								<Route path="profile" element={<ProfilePage />} />
-							</Route>
-						</Routes>
+						<EmergencyTypesProvider>
+							<Routes>
+								<Route index element={<IndexPage />} />
+								<Route path="login" element={<LoginPage />} />
+								<Route path="signup-clinician" element={<ClinicianSignUpPage />} />
+								<Route path="signup-patient" element={<PatientSignUpPage />} />
+								<Route path="app-settings" element={<SettingsPage />} />
+								<Route path="navigation" element={<Layout />}>
+									<Route index element={<AssistancePage />} />
+									<Route path="assistance" element={<AssistancePage />} />
+									<Route path="counterpart" element={<CounterpartPage />} />
+									<Route path="chat" element={<ChatPage />} />
+									<Route path="profile" element={<ProfilePage />} />
+								</Route>
+							</Routes>
+						</EmergencyTypesProvider>
 					</ProfileProvider>
 				</APIProvider>
 			</TokenProvider>
