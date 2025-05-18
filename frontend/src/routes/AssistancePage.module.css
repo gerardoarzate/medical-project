@@ -53,16 +53,10 @@
     overflow: auto;
 }
 
-.availablePatientForm {
-    display: flex;
-    flex-direction: column;
-    padding: 0 16px;
-    gap: 24px;
-}
-
 .availablePatientFormLabelContainer {
     display: flex;
     flex-direction: column;
+    padding: 0 16px;
     gap: 8px;
     color: var(--secondary);
 }

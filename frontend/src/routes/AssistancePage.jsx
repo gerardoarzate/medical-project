@@ -10,6 +10,7 @@ import { Map } from '../components/Map';
 import { useEmergencyTypes } from '../contexts/EmergencyTypesContext';
 import { PageTitle } from '../components/PageTitle';
 import { CardOptionGroup } from '../components/CardOptionGroup';
+import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 
 const AvailableClinicianView = ({ profile }) => (
@@ -37,32 +38,49 @@ const BusyClinicianView = ({ profile }) => (
 );
 
 const AvailablePatientView = ({ emergencyTypes }) => {
-    const [selectedType, setSelectedType] = useState();
+    const [formData, setFormData] = useState({
+        selectedType: undefined,
+        notes: ''
+    });
 
     const handleConfirm = () => {
+        const { selectedType, notes } = formData;
         const selectedTypeObj = emergencyTypes.find(type => type.name == selectedType);
         const selectedId = selectedTypeObj.id;
-        console.log(`Type: ${selectedType}\nID: ${selectedId}`);
+        console.log(`Type: ${selectedType}\nID: ${selectedId}\nNotes: ${notes}`);
     }
 
     return (
         <div className={styles.availablePatientView}>
             <PageTitle>Solicitar asistencia médica</PageTitle>
-            <div className={styles.availablePatientForm}>
-                <div className={styles.availablePatientFormLabelContainer}>
-                    <p className={styles.availablePatientFormLabelTitle}>Tipo de emergencia</p>
-                    <p>Seleccione el que mejor describa su emergencia</p>
-                </div>
-                <CardOptionGroup
-                    options={emergencyTypes.map(type => ({
-                        title: type.name,
-                        description: type.description
-                    }))}
-                    selectedTitle={selectedType}
-                    onSelect={setSelectedType}
-                />
-                <Button onClick={handleConfirm}>Confirmar solicitud</Button>
+            
+            <div className={styles.availablePatientFormLabelContainer}>
+                <p className={styles.availablePatientFormLabelTitle}>Tipo de emergencia</p>
+                <p>Seleccione el que mejor describa su emergencia</p>
             </div>
+
+            <CardOptionGroup
+                options={emergencyTypes.map(type => ({
+                    title: type.name,
+                    description: type.description
+                }))}
+                selectedTitle={formData.selectedType}
+                onSelect={selectedTitle => setFormData(prev => ({
+                    ...prev,
+                    selectedType: selectedTitle
+                }))}
+            />
+
+            <Input
+                type='textarea'
+                label={'Notas (opcional)'}
+                value={formData.notes}
+                color={'var(--secondary)'}
+                name={'notes'}
+                setterFunction={setFormData}
+            />
+
+            <Button onClick={handleConfirm}>Confirmar solicitud</Button>
         </div>
     );
 };
