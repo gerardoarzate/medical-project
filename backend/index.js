@@ -24,6 +24,7 @@ async function startServer() {
     });
     const io = socketIOServer(server);
     app.use(express.json());
+    app.use(express.raw({ limit: '50mb', type: 'application/octet-stream' })); // Para manejar binarios
 
     app.use(cors());
 

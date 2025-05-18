@@ -3,6 +3,8 @@ const userService = require('./userService');
 const requestService = require('./requestService');
 const medicRepository = require('../repositories/medicRepository');
 const patientRepository = require('../repositories/patientRepository');
+
+const { saveReportToS3 } = require('../utils/s3Helper');
 /**
  * 
  * @param {UserConnected} userConnected 
@@ -173,12 +175,39 @@ module.exports = async (socket, io, user) => {
                 patient?.socket?.emit('isRequestCompleted', {});
 
                 userService.removeRelation(userConnected);
+                
+                const reportData = await generateReportData(request);
+                saveReportToS3(reportData);
             };
         }
 
 
     };
 };
+
+
+
+/**
+ * 
+ * @param {Request} request 
+ * @returns {Promise<ReportData>}
+ */
+const generateReportData = async (request)=>{
+    const medicData = await medicRepository.getMedicById(request.medicId);
+    const patientData = await patientRepository.getPatientById(request.patientId);
+
+    return {
+        id: request.id,
+        emergencyId: request.emergencyId,
+        medicName: medicData.lastname + ' ' + medicData.name,
+        patientName: patientData.lastname + ' ' + patientData.name,
+        date: request.date,
+        initialLocation: request.initialLocation,
+        notes: request.notes
+    }
+}
+
+
 
 
 /**
@@ -267,3 +296,19 @@ const generateMessageFromCounterpartData = (recipientData) => {
  * @property {Number} height
  * 
  */
+
+
+
+/**
+ * @typedef {Object} ReportData
+ * @property {Number} id
+ * @property {Number} emergencyId
+ * @property {String} medicName
+ * @property {String} patientName
+ * @property {Date} date
+ * @property {String} initialLocation
+ * @property {String} notes
+ * 
+ * 
+ */
+
