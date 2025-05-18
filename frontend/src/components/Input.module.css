@@ -12,3 +12,8 @@
     padding: 16px 12px;
     font: inherit;
 }
+
+.textarea {
+    height: 6em;
+    border-radius: 8px;
+}

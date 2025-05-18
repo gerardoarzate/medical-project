@@ -15,20 +15,37 @@ export const Input = ({ label, name, type = 'text', color, value, onChange, sett
             <p style={{ color: color }}>
                 {label}
             </p>
-            <input
-                className={styles.htmlInput}
-                type={type}
-                value={value}
-                name={name}
-                onChange={(e) => {
-                    const {name, value} = e.target;
-                    setterFunction(prev => ({
-                        ...prev,
-                        [name]: value
-                    }));
-                    onChange?.(e);
-                }}
-            />
+            { type == 'textarea' ? (
+                <textarea
+                    className={`${styles.htmlInput} ${styles.textarea}`}
+                    type={type}
+                    value={value}
+                    name={name}
+                    onChange={(e) => {
+                        const {name, value} = e.target;
+                        setterFunction(prev => ({
+                            ...prev,
+                            [name]: value
+                        }));
+                        onChange?.(e);
+                    }}
+                />
+            ) : (
+                <input
+                    className={styles.htmlInput}
+                    type={type}
+                    value={value}
+                    name={name}
+                    onChange={(e) => {
+                        const {name, value} = e.target;
+                        setterFunction(prev => ({
+                            ...prev,
+                            [name]: value
+                        }));
+                        onChange?.(e);
+                    }}
+                />
+            )}
         </label>
     );
 };
