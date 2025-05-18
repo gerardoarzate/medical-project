@@ -42,3 +42,31 @@
     flex-direction: column;
     gap: 18px;
 }
+
+.availablePatientView {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    height: 100%;
+    padding: 32px 0 24px 0;
+    background-color: var(--bg-gray);
+    overflow: auto;
+}
+
+.availablePatientForm {
+    display: flex;
+    flex-direction: column;
+    padding: 0 16px;
+    gap: 24px;
+}
+
+.availablePatientFormLabelContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--secondary);
+}
+
+.availablePatientFormLabelTitle {
+    font-weight: bold;
+}

@@ -1,4 +1,5 @@
 import styles from './AssistancePage.module.css';
+import { useState } from 'react';
 import { RoundedSpecialityHeader } from '../components/RoundedSpecialityHeader';
 import { useToken } from '../contexts/TokenContext';
 import { useProfile } from '../contexts/ProfileContext';
@@ -6,6 +7,10 @@ import { SpecialityHeader } from '../components/SpecialityHeader';
 import { Destination } from '../components/Destination';
 import { EmergencyDetails } from '../components/EmergencyDetails';
 import { Map } from '../components/Map';
+import { useEmergencyTypes } from '../contexts/EmergencyTypesContext';
+import { PageTitle } from '../components/PageTitle';
+import { CardOptionGroup } from '../components/CardOptionGroup';
+import { Button } from '../components/Button';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -31,16 +36,48 @@ const BusyClinicianView = ({ profile }) => (
     </div>
 );
 
+const AvailablePatientView = ({ emergencyTypes }) => {
+    const [selectedType, setSelectedType] = useState();
+
+    const handleConfirm = () => {
+        const selectedTypeObj = emergencyTypes.find(type => type.name == selectedType);
+        const selectedId = selectedTypeObj.id;
+        console.log(`Type: ${selectedType}\nID: ${selectedId}`);
+    }
+
+    return (
+        <div className={styles.availablePatientView}>
+            <PageTitle>Solicitar asistencia médica</PageTitle>
+            <div className={styles.availablePatientForm}>
+                <div className={styles.availablePatientFormLabelContainer}>
+                    <p className={styles.availablePatientFormLabelTitle}>Tipo de emergencia</p>
+                    <p>Seleccione el que mejor describa su emergencia</p>
+                </div>
+                <CardOptionGroup
+                    options={emergencyTypes.map(type => ({
+                        title: type.name,
+                        description: type.description
+                    }))}
+                    selectedTitle={selectedType}
+                    onSelect={setSelectedType}
+                />
+                <Button onClick={handleConfirm}>Confirmar solicitud</Button>
+            </div>
+        </div>
+    );
+};
+
 export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
+    const emergencyTypes = useEmergencyTypes();
 
     if (!tokenData) {
         return;
     }
 
     const { type } = tokenData;
-    const isBusy = true;
+    const isBusy = false;
 
     return (
         <main className={styles.assistancePage}>
@@ -50,7 +87,7 @@ export const AssistancePage = () => {
                     : <AvailableClinicianView profile={profile} />
                 : type == 'PACIENTE' ?
                     isBusy ? 'busy patient'
-                    : 'available patient'
+                    : <AvailablePatientView emergencyTypes={emergencyTypes}/>
                 : null
             }
         </main>
