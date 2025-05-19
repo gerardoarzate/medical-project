@@ -46,7 +46,7 @@ export const TokenProvider = ({ children }) => {
             if (token != undefined) {
                 setToken(undefined);
             }
-            localStorage.removeItem('token');
+            localStorage.clear();
             navigate('/');
 
         }
