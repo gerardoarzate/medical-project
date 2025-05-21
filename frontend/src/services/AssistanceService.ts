@@ -1,15 +1,15 @@
 import { io, Socket } from "socket.io-client";
 
-interface IMessage {
+interface Message {
     sentBySelf: boolean,
     content: string
 }
 
-interface IReceiveMessageEventBody {
+interface ReceiveMessageEventBody {
     message: string
 }
 
-interface IReceivePatientDataEventBody {
+interface ReceivePatientDataEventBody {
     fullName: string,
     height: number,
     weight: number,
@@ -21,9 +21,37 @@ interface IReceivePatientDataEventBody {
     emergencyTypeId: number
 }
 
-type Listener = (payload: any) => void;
-type MessageListener = (messageHistory: IMessage[]) => any;
-type PatientDataListener = (patientData: IReceivePatientDataEventBody) => any;
+type MessageHistory = Message[];
+
+type Listener<Data> = (data: Data) => any;
+type SocketListener = Listener<any>;
+type MessageListener = Listener<MessageHistory>;
+type PatientDataListener = Listener<ReceivePatientDataEventBody>;
+
+class ListenerList<Data> {
+    private readonly listeners: Listener<Data>[] = [];
+
+    add(listener: Listener<Data>) {
+        this.listeners.push(listener);
+    }
+
+    remove(listener: Listener<Data>) {
+        const index = this.listeners.indexOf(listener);
+        if (index !== -1) {
+            this.listeners.splice(index, 1);
+        }
+    }
+
+    emit(data: Data) {
+        for (const listener of this.listeners) {
+            try {
+                listener(data);
+            } catch (error) {
+                console.error('Listener threw an error:', error);
+            }
+        }
+    }
+}
 
 /**
  * Class that manages a Socket.io connection with the server, as well
@@ -31,8 +59,8 @@ type PatientDataListener = (patientData: IReceivePatientDataEventBody) => any;
  */
 export abstract class AssistanceService {
     protected readonly socket: Socket;
-    private messages: IMessage[] = [];
-    private readonly messageListeners: MessageListener[] = [];
+    private messages: MessageHistory = [];
+    private readonly messageListeners = new ListenerList<MessageHistory>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         const socket = io(apiUrl, {
@@ -46,8 +74,8 @@ export abstract class AssistanceService {
         
         this.loadStoredMessageHistory();
 
-        this.on('receiveMessage', ({ message }: IReceiveMessageEventBody) =>
-            this.handleReceiveMessage(message)
+        this.on('receiveMessage', (data: ReceiveMessageEventBody) =>
+            this.handleReceiveMessage(data)
         );
     }
 
@@ -64,7 +92,7 @@ export abstract class AssistanceService {
             message: message
         });
         
-        const msgObj: IMessage = {
+        const msgObj: Message = {
             content: message,
             sentBySelf: true
         }
@@ -72,21 +100,18 @@ export abstract class AssistanceService {
     }
 
     addMessageListener(listener: MessageListener) {
-        this.messageListeners.push(listener);
+        this.messageListeners.add(listener);
     }
 
     removeMessageListener(listener: MessageListener) {
-        const index = this.messageListeners.indexOf(listener);
-        if (index !== -1) {
-            this.messageListeners.splice(index, 1);
-        }
+        this.messageListeners.remove(listener);
     }
 
-    protected on(event: string, listener: Listener) {
+    protected on(event: string, listener: SocketListener) {
         this.socket.on(event, listener);
     }
 
-    protected off(event: string, listener: Listener) {
+    protected off(event: string, listener: SocketListener) {
         this.socket.off(event, listener);
     }
 
@@ -101,7 +126,7 @@ export abstract class AssistanceService {
 
     private loadStoredMessageHistory() {
         const storedMessagesStr = localStorage.getItem('chat');
-        const storedMessages: IMessage[] | null = storedMessagesStr && JSON.parse(storedMessagesStr);
+        const storedMessages: MessageHistory | null = storedMessagesStr && JSON.parse(storedMessagesStr);
         
         if (storedMessages) {
             this.messages = [];
@@ -109,16 +134,15 @@ export abstract class AssistanceService {
         }
     }
 
-    private addMessages(...messages: IMessage[]) {
+    private addMessages(...messages: Message[]) {
         this.messages.push(...messages);
         this.storeMessageHistory();
-        for (const listener of this.messageListeners) {
-            listener([...this.messages]);
-        }
+        this.messageListeners.emit([...this.messages]);
     }
 
-    private handleReceiveMessage(message: string) {
-        const msgObj: IMessage = {
+    private handleReceiveMessage(data: ReceiveMessageEventBody) {
+        const { message } = data;
+        const msgObj: Message = {
             content: message,
             sentBySelf: false
         };
@@ -126,38 +150,31 @@ export abstract class AssistanceService {
     }
 }
 
+/**
+ * Class that manages a Socket.io connection with the server, as well
+ * as data and events for the medical assistance features of clinicians
+ * in the app.
+ */
 export class ClinicianAssistanceService extends AssistanceService {
-    private readonly patientDataListeners: PatientDataListener[] = [];
-
+    private readonly patientDataListeners = new ListenerList<ReceivePatientDataEventBody>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         super(apiUrl, token, currentLatitude, currentLongitude);
 
-        this.on('receiveCounterpartData', (data: IReceivePatientDataEventBody) =>
-            this.handleReceivePatientData(data)
+        this.on('receiveCounterpartData', (data: ReceivePatientDataEventBody) =>
+            this.patientDataListeners.emit(data)
         );
     }
 
-    endRequest(message: string) {
-        this.socket.emit('endRequest', {
-            message: message
-        });
+    endRequest() {
+        this.socket.emit('endRequest');
     }
 
     addPatientDataListener(listener: PatientDataListener) {
-        this.patientDataListeners.push(listener);
+        this.patientDataListeners.add(listener);
     }
 
     removePatientDataListener(listener: PatientDataListener) {
-        const index = this.patientDataListeners.indexOf(listener);
-        if (index !== -1) {
-            this.patientDataListeners.splice(index, 1);
-        }
-    }
-    
-    private handleReceivePatientData(data: IReceivePatientDataEventBody) {
-        for (const listener of this.patientDataListeners) {
-            listener(data);
-        }
+        this.patientDataListeners.remove(listener);
     }
 }
