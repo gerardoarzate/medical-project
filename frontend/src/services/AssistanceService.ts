@@ -21,12 +21,28 @@ interface ReceivePatientDataEventBody {
     emergencyTypeId: number
 }
 
+interface RequestBody {
+    emergencyTypeId: number,
+    notes: string,
+    initialLatitude: number,
+    initialLongitude: number
+}
+
+interface ReceiveClinicianDataEventBody {
+    fullName: string,
+    licence: string,
+    speciality: string,
+    telephone: string
+}
+
 type MessageHistory = Message[];
 
 type Listener<Data> = (data: Data) => any;
 type SocketListener = Listener<any>;
 type MessageListener = Listener<MessageHistory>;
 type PatientDataListener = Listener<ReceivePatientDataEventBody>;
+type ClinicianDataListener = Listener<ReceiveClinicianDataEventBody>;
+type RequestCreatedListener = Listener<undefined>;
 
 class ListenerList<Data> {
     private readonly listeners: Listener<Data>[] = [];
@@ -176,5 +192,47 @@ export class ClinicianAssistanceService extends AssistanceService {
 
     removePatientDataListener(listener: PatientDataListener) {
         this.patientDataListeners.remove(listener);
+    }
+}
+
+/**
+ * Class that manages a Socket.io connection with the server, as well
+ * as data and events for the medical assistance features of patients
+ * in the app.
+ */
+export class PatientAssistanceService extends AssistanceService {
+    private readonly clinicianDataListeners = new ListenerList<ReceiveClinicianDataEventBody>();
+    private readonly requestCreatedListeners = new ListenerList<undefined>();
+
+    constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
+        super(apiUrl, token, currentLatitude, currentLongitude);
+
+        this.on('receiveCounterpartData', (data: ReceiveClinicianDataEventBody) =>
+            this.clinicianDataListeners.emit(data)
+        );
+
+        this.on('isRequestCreated', () =>
+            this.requestCreatedListeners.emit(undefined)
+        );
+    }
+
+    createRequest(data: RequestBody) {
+        this.socket.emit('createRequest', data);
+    }
+
+    addClinicianDataListener(listener: ClinicianDataListener) {
+        this.clinicianDataListeners.add(listener);
+    }
+
+    removeClinicianDataListener(listener: ClinicianDataListener) {
+        this.clinicianDataListeners.remove(listener);
+    }
+
+    addRequestCreatedListener(listener: RequestCreatedListener) {
+        this.requestCreatedListeners.add(listener);
+    }
+
+    removeRequestCreatedListener(listener: RequestCreatedListener) {
+        this.requestCreatedListeners.remove(listener);
     }
 }
