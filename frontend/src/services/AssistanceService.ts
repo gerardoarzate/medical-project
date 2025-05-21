@@ -9,17 +9,30 @@ interface IReceiveMessageEventBody {
     message: string
 }
 
+interface IReceivePatientDataEventBody {
+    fullName: string,
+    height: number,
+    weight: number,
+    age: number,
+    sex: string,
+    telephone: string,
+    notes: string,
+    requestTimestamp: number,
+    emergencyTypeId: number
+}
+
 type Listener = (payload: any) => void;
 type MessageListener = (messageHistory: IMessage[]) => any;
+type PatientDataListener = (patientData: IReceivePatientDataEventBody) => any;
 
 /**
  * Class that manages a Socket.io connection with the server, as well
  * as data and events for the medical assistance feature of the app.
  */
-abstract class AssistanceService {
-    private readonly socket: Socket;
+export abstract class AssistanceService {
+    protected readonly socket: Socket;
     private messages: IMessage[] = [];
-    private readonly messageListeners: Listener[] = [];
+    private readonly messageListeners: MessageListener[] = [];
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         const socket = io(apiUrl, {
@@ -110,5 +123,41 @@ abstract class AssistanceService {
             sentBySelf: false
         };
         this.addMessages(msgObj);
+    }
+}
+
+export class ClinicianAssistanceService extends AssistanceService {
+    private readonly patientDataListeners: PatientDataListener[] = [];
+
+
+    constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
+        super(apiUrl, token, currentLatitude, currentLongitude);
+
+        this.on('receiveCounterpartData', (data: IReceivePatientDataEventBody) =>
+            this.handleReceivePatientData(data)
+        );
+    }
+
+    endRequest(message: string) {
+        this.socket.emit('endRequest', {
+            message: message
+        });
+    }
+
+    addPatientDataListener(listener: PatientDataListener) {
+        this.patientDataListeners.push(listener);
+    }
+
+    removePatientDataListener(listener: PatientDataListener) {
+        const index = this.patientDataListeners.indexOf(listener);
+        if (index !== -1) {
+            this.patientDataListeners.splice(index, 1);
+        }
+    }
+    
+    private handleReceivePatientData(data: IReceivePatientDataEventBody) {
+        for (const listener of this.patientDataListeners) {
+            listener(data);
+        }
     }
 }
