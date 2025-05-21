@@ -43,6 +43,7 @@ type MessageListener = Listener<MessageHistory>;
 type PatientDataListener = Listener<ReceivePatientDataEventBody>;
 type ClinicianDataListener = Listener<ReceiveClinicianDataEventBody>;
 type RequestCreatedListener = Listener<undefined>;
+type RequestCompletedListener = Listener<undefined>;
 
 class ListenerList<Data> {
     private readonly listeners: Listener<Data>[] = [];
@@ -77,6 +78,7 @@ export abstract class AssistanceService {
     protected readonly socket: Socket;
     private messages: MessageHistory = [];
     private readonly messageListeners = new ListenerList<MessageHistory>();
+    private readonly requestCompletedListeners = new ListenerList<undefined>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         const socket = io(apiUrl, {
@@ -92,6 +94,10 @@ export abstract class AssistanceService {
 
         this.on('receiveMessage', (data: ReceiveMessageEventBody) =>
             this.handleReceiveMessage(data)
+        );
+
+        this.on('isRequestCompleted', () =>
+            this.requestCompletedListeners.emit(undefined)
         );
     }
 
@@ -121,6 +127,14 @@ export abstract class AssistanceService {
 
     removeMessageListener(listener: MessageListener) {
         this.messageListeners.remove(listener);
+    }
+
+    addRequestCompletedListener(listener: RequestCompletedListener) {
+        this.requestCompletedListeners.add(listener);
+    }
+
+    removeRequestCompletedListener(listener: RequestCompletedListener) {
+        this.requestCompletedListeners.remove(listener);
     }
 
     protected on(event: string, listener: SocketListener) {
