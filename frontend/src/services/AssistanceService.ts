@@ -96,14 +96,13 @@ export abstract class AssistanceService {
             this.handleReceiveMessage(data)
         );
 
-        this.on('isRequestCompleted', () =>
-            this.requestCompletedListeners.emit(undefined)
+        this.on('isRequestCompleted', () => 
+            this.handleRequestCompleted()
         );
     }
 
     end() {
         this.disconnect();
-        localStorage.removeItem('chat');
         for (const key in this) {
             delete this[key];
         }
@@ -164,6 +163,11 @@ export abstract class AssistanceService {
         }
     }
 
+    private clearChatHistory() {
+        this.messages = [];
+        localStorage.removeItem('chat');
+    }
+
     private addMessages(...messages: Message[]) {
         this.messages.push(...messages);
         this.storeMessageHistory();
@@ -177,6 +181,11 @@ export abstract class AssistanceService {
             sentBySelf: false
         };
         this.addMessages(msgObj);
+    }
+
+    private handleRequestCompleted() {
+        this.clearChatHistory();
+        this.requestCompletedListeners.emit(undefined);
     }
 }
 
