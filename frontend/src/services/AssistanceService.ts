@@ -5,6 +5,32 @@ interface Message {
     content: string
 }
 
+interface Counterpart {
+    fullName: string,
+    telephone: string,
+    latitude: number | null,
+    longitude: number | null,
+    isOnline: boolean
+}
+
+interface Clinician extends Counterpart {
+    licence: string,
+    speciality: string
+}
+
+interface Patient extends Counterpart {
+    height: number,
+    weight: number,
+    age: number,
+    sex: string
+}
+
+interface AssistanceRequest {
+    emergencyTypeId: number,
+    notes: string,
+    creationTimestamp: number
+}
+
 interface ReceiveMessageEventBody {
     message: string
 }
@@ -16,16 +42,9 @@ interface ReceivePatientDataEventBody {
     age: number,
     sex: string,
     telephone: string,
-    notes: string,
-    requestTimestamp: number,
-    emergencyTypeId: number
-}
-
-interface RequestBody {
     emergencyTypeId: number,
-    notes: string,
-    initialLatitude: number,
-    initialLongitude: number
+    requestTimestamp: number,
+    notes: string
 }
 
 interface ReceiveClinicianDataEventBody {
@@ -35,14 +54,21 @@ interface ReceiveClinicianDataEventBody {
     telephone: string
 }
 
+interface CreateRequestBody {
+    emergencyTypeId: number,
+    notes: string,
+    initialLatitude: number,
+    initialLongitude: number
+}
+
 type MessageHistory = Message[];
 
 type Listener<Data> = (data: Data) => any;
 type SocketListener = Listener<any>;
 type MessageListener = Listener<MessageHistory>;
-type PatientDataListener = Listener<ReceivePatientDataEventBody>;
-type ClinicianDataListener = Listener<ReceiveClinicianDataEventBody>;
-type RequestCreatedListener = Listener<undefined>;
+type RequestListener = Listener<AssistanceRequest | undefined>;
+type PatientListener = Listener<Patient | undefined>;
+type ClinicianListener = Listener<Clinician | undefined>;
 type RequestCompletedListener = Listener<undefined>;
 
 class ListenerList<Data> {
@@ -77,7 +103,9 @@ class ListenerList<Data> {
 export abstract class AssistanceService {
     protected readonly socket: Socket;
     private messages: MessageHistory = [];
+    private request: AssistanceRequest | undefined = undefined;
     private readonly messageListeners = new ListenerList<MessageHistory>();
+    private readonly requestListeners = new ListenerList<AssistanceRequest | undefined>();
     private readonly requestCompletedListeners = new ListenerList<undefined>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
@@ -91,6 +119,7 @@ export abstract class AssistanceService {
         this.socket = socket;
         
         this.loadStoredMessageHistory();
+        this.loadRequest();
 
         this.on('receiveMessage', (data: ReceiveMessageEventBody) =>
             this.handleReceiveMessage(data)
@@ -120,6 +149,14 @@ export abstract class AssistanceService {
         this.addMessages(msgObj);
     }
 
+    addRequestListener(listener: RequestListener) {
+        this.requestListeners.add(listener);
+    }
+
+    removeRequestListener(listener: RequestListener) {
+        this.requestListeners.remove(listener);
+    }
+
     addMessageListener(listener: MessageListener) {
         this.messageListeners.add(listener);
     }
@@ -144,8 +181,40 @@ export abstract class AssistanceService {
         this.socket.off(event, listener);
     }
 
+    protected setRequest(request: AssistanceRequest) {
+        this.request = request;
+        this.storeRequest();
+        this.requestListeners.emit(request);
+    }
+
     private disconnect() {
         this.socket.disconnect();
+    }
+    
+    private storeRequest() {
+        const { request } = this;
+        if (!request) {
+            return;
+        }
+        const requestStr = JSON.stringify(request);
+        localStorage.setItem('request', requestStr);
+    }
+
+    private loadRequest() {
+        const storedRequestStr = localStorage.getItem('request');
+
+        if (!storedRequestStr) {
+            return;
+        }
+
+        const storedRequest: AssistanceRequest = JSON.parse(storedRequestStr);
+        this.setRequest(storedRequest);
+    }
+
+    private clearRequest() {
+        this.request = undefined;
+        this.requestListeners.emit(undefined);
+        localStorage.removeItem('request');
     }
 
     private storeMessageHistory() {
@@ -165,7 +234,13 @@ export abstract class AssistanceService {
 
     private clearChatHistory() {
         this.messages = [];
+        this.messageListeners.emit([]);
         localStorage.removeItem('chat');
+    }
+
+    private clearStoredData() {
+        this.clearChatHistory();
+        this.clearRequest();
     }
 
     private addMessages(...messages: Message[]) {
@@ -184,7 +259,7 @@ export abstract class AssistanceService {
     }
 
     private handleRequestCompleted() {
-        this.clearChatHistory();
+        this.clearStoredData();
         this.requestCompletedListeners.emit(undefined);
     }
 }
@@ -195,13 +270,20 @@ export abstract class AssistanceService {
  * in the app.
  */
 export class ClinicianAssistanceService extends AssistanceService {
-    private readonly patientDataListeners = new ListenerList<ReceivePatientDataEventBody>();
+    private patient: Patient | undefined = undefined;
+    private readonly patientListeners = new ListenerList<Patient | undefined>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         super(apiUrl, token, currentLatitude, currentLongitude);
 
+        this.loadPatient();
+
         this.on('receiveCounterpartData', (data: ReceivePatientDataEventBody) =>
-            this.patientDataListeners.emit(data)
+            this.handleReceiveCounterpartData(data)
+        );
+
+        this.on('isRequestCompleted', () => 
+            this.handleRequestCompletedForClinician()
         );
     }
 
@@ -209,12 +291,71 @@ export class ClinicianAssistanceService extends AssistanceService {
         this.socket.emit('endRequest');
     }
 
-    addPatientDataListener(listener: PatientDataListener) {
-        this.patientDataListeners.add(listener);
+    addPatientListener(listener: PatientListener) {
+        this.patientListeners.add(listener);
     }
 
-    removePatientDataListener(listener: PatientDataListener) {
-        this.patientDataListeners.remove(listener);
+    removePatientListener(listener: PatientListener) {
+        this.patientListeners.remove(listener);
+    }
+
+    protected setPatient(data: Patient) {
+        this.patient = data;
+        this.storePatient();
+        this.patientListeners.emit(data);
+    }
+
+    private storePatient() {
+        const { patient } = this;
+        if (!patient) {
+            return;
+        }
+        const patientStr = JSON.stringify(patient);
+        localStorage.setItem('patient', patientStr);
+    }
+
+    private loadPatient() {
+        const storedPatientStr = localStorage.getItem('patient');
+
+        if (!storedPatientStr) {
+            return;
+        }
+
+        const storedPatient: Patient = JSON.parse(storedPatientStr);
+        this.setPatient(storedPatient);
+    }
+
+    private clearPatient() {
+        this.patient = undefined;
+        this.patientListeners.emit(undefined);
+        localStorage.removeItem('patient');
+    }
+
+    private handleReceiveCounterpartData(data: ReceivePatientDataEventBody) {
+        const request: AssistanceRequest = {
+            creationTimestamp: data.requestTimestamp,
+            emergencyTypeId: data.emergencyTypeId,
+            notes: data.notes
+        };
+
+        const patient: Patient = {
+            fullName: data.fullName,
+            age: data.age,
+            telephone: data.telephone,
+            height: data.height,
+            weight: data.weight,
+            sex: data.sex,
+            latitude: null,
+            longitude: null,
+            isOnline: false
+        };
+        
+        this.setRequest(request);
+        this.setPatient(patient);
+    }
+
+    private handleRequestCompletedForClinician() {
+        this.clearPatient();
     }
 }
 
@@ -224,38 +365,100 @@ export class ClinicianAssistanceService extends AssistanceService {
  * in the app.
  */
 export class PatientAssistanceService extends AssistanceService {
-    private readonly clinicianDataListeners = new ListenerList<ReceiveClinicianDataEventBody>();
-    private readonly requestCreatedListeners = new ListenerList<undefined>();
+    private clinician: Clinician | undefined = undefined;
+    private readonly clinicianListeners = new ListenerList<Clinician | undefined>();
 
     constructor(apiUrl: string, token: string, currentLatitude: number, currentLongitude: number) {
         super(apiUrl, token, currentLatitude, currentLongitude);
 
-        this.on('receiveCounterpartData', (data: ReceiveClinicianDataEventBody) =>
-            this.clinicianDataListeners.emit(data)
-        );
+        this.loadClinician();
 
         this.on('isRequestCreated', () =>
-            this.requestCreatedListeners.emit(undefined)
+            this.handleRequestCreated()
         );
+
+        this.on('receiveCounterpartData', (data: ReceiveClinicianDataEventBody) =>
+            this.handleReceiveCounterpartData(data)
+        );
+
+        this.on('isRequestCompleted', () => 
+            this.handleRequestCompletedForPatient()
+        );
+
     }
 
-    createRequest(data: RequestBody) {
+    createRequest(data: CreateRequestBody) {
         this.socket.emit('createRequest', data);
+
+        // TODO: The request object should be created and set in this.handleRequestCreated(), not here
+        const request: AssistanceRequest = {
+            creationTimestamp: Date.now(),
+            emergencyTypeId: data.emergencyTypeId,
+            notes: data.notes
+        };
+
+        this.setRequest(request);
     }
 
-    addClinicianDataListener(listener: ClinicianDataListener) {
-        this.clinicianDataListeners.add(listener);
+    addClinicianListener(listener: ClinicianListener) {
+        this.clinicianListeners.add(listener);
     }
 
-    removeClinicianDataListener(listener: ClinicianDataListener) {
-        this.clinicianDataListeners.remove(listener);
+    removeClinicianListener(listener: ClinicianListener) {
+        this.clinicianListeners.remove(listener);
     }
 
-    addRequestCreatedListener(listener: RequestCreatedListener) {
-        this.requestCreatedListeners.add(listener);
+    protected setClinician(data: Clinician) {
+        this.clinician = data;
+        this.storeClinician();
+        this.clinicianListeners.emit(data);
     }
 
-    removeRequestCreatedListener(listener: RequestCreatedListener) {
-        this.requestCreatedListeners.remove(listener);
+    private storeClinician() {
+        const { clinician } = this;
+        if (!clinician) {
+            return;
+        }
+        const clinicianStr = JSON.stringify(clinician);
+        localStorage.setItem('clinician', clinicianStr);
+    }
+
+    private loadClinician() {
+        const storedClinicianStr = localStorage.getItem('clinician');
+
+        if (!storedClinicianStr) {
+            return;
+        }
+
+        const storedclinician: Clinician = JSON.parse(storedClinicianStr);
+        this.setClinician(storedclinician);
+    }
+
+    private clearClinician() {
+        this.clinician = undefined;
+        this.clinicianListeners.emit(undefined);
+        localStorage.removeItem('clinician');
+    }
+
+    private handleReceiveCounterpartData(data: ReceiveClinicianDataEventBody) {
+        const clinician: Clinician = {
+            fullName: data.fullName,
+            licence: data.licence,
+            telephone: data.telephone,
+            speciality: data.speciality,
+            latitude: null,
+            longitude: null,
+            isOnline: false
+        };
+        
+        this.setClinician(clinician);
+    }
+
+    private handleRequestCompletedForPatient() {
+        this.clearClinician();
+    }
+
+    private handleRequestCreated() {
+        // TODO: The local request object should be created here
     }
 }
