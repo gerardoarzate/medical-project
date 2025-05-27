@@ -5,7 +5,7 @@ interface Message {
     content: string
 }
 
-interface Counterpart {
+export interface Counterpart {
     fullName: string,
     telephone: string,
     latitude: number | null,
@@ -13,19 +13,19 @@ interface Counterpart {
     isOnline: boolean
 }
 
-interface Clinician extends Counterpart {
+export interface Clinician extends Counterpart {
     licence: string,
     speciality: string
 }
 
-interface Patient extends Counterpart {
+export interface Patient extends Counterpart {
     height: number,
     weight: number,
     age: number,
     sex: string
 }
 
-interface AssistanceRequest {
+export interface AssistanceRequest {
     emergencyTypeId: number,
     notes: string,
     creationTimestamp: number
@@ -54,22 +54,22 @@ interface ReceiveClinicianDataEventBody {
     telephone: string
 }
 
-interface CreateRequestBody {
+export interface CreateRequestBody {
     emergencyTypeId: number,
     notes: string,
     initialLatitude: number,
     initialLongitude: number
 }
 
-type MessageHistory = Message[];
+export type MessageHistory = Message[];
 
 type Listener<Data> = (data: Data) => any;
 type SocketListener = Listener<any>;
-type MessageListener = Listener<MessageHistory>;
-type RequestListener = Listener<AssistanceRequest | undefined>;
-type PatientListener = Listener<Patient | undefined>;
-type ClinicianListener = Listener<Clinician | undefined>;
-type RequestCompletedListener = Listener<undefined>;
+export type MessageListener = Listener<MessageHistory>;
+export type RequestListener = Listener<AssistanceRequest | undefined>;
+export type PatientListener = Listener<Patient | undefined>;
+export type ClinicianListener = Listener<Clinician | undefined>;
+export type RequestCompletedListener = Listener<undefined>;
 
 class ListenerList<Data> {
     private readonly listeners: Listener<Data>[] = [];
