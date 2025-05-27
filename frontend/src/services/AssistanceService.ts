@@ -36,7 +36,7 @@ interface ReceiveMessageEventBody {
 }
 
 interface ReceivePatientDataEventBody {
-    fullName: string,
+    fullname: string,
     height: number,
     weight: number,
     age: number,
@@ -48,7 +48,7 @@ interface ReceivePatientDataEventBody {
 }
 
 interface ReceiveClinicianDataEventBody {
-    fullName: string,
+    fullname: string,
     licence: string,
     speciality: string,
     telephone: string
@@ -337,9 +337,9 @@ export class ClinicianAssistanceService extends AssistanceService {
             emergencyTypeId: data.emergencyTypeId,
             notes: data.notes
         };
-
+        
         const patient: Patient = {
-            fullName: data.fullName,
+            fullName: data.fullname,
             age: data.age,
             telephone: data.telephone,
             height: data.height,
@@ -442,7 +442,7 @@ export class PatientAssistanceService extends AssistanceService {
 
     private handleReceiveCounterpartData(data: ReceiveClinicianDataEventBody) {
         const clinician: Clinician = {
-            fullName: data.fullName,
+            fullName: data.fullname,
             licence: data.licence,
             telephone: data.telephone,
             speciality: data.speciality,
