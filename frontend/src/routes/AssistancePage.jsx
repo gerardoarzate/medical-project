@@ -12,6 +12,8 @@ import { PageTitle } from '../components/PageTitle';
 import { CardOptionGroup } from '../components/CardOptionGroup';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { useAssistanceService } from '../contexts/AssistanceServiceContext';
+import { useRequest, useCounterpart } from '../hooks/assistanceServiceHooks';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -42,12 +44,18 @@ const AvailablePatientView = ({ emergencyTypes }) => {
         selectedType: undefined,
         notes: ''
     });
+    const assistanceService = useAssistanceService();
 
     const handleConfirm = () => {
         const { selectedType, notes } = formData;
         const selectedTypeObj = emergencyTypes.find(type => type.name == selectedType);
         const selectedId = selectedTypeObj.id;
-        console.log(`Type: ${selectedType}\nID: ${selectedId}\nNotes: ${notes}`);
+        assistanceService.createRequest({
+            emergencyTypeId: selectedId,
+            notes: notes,
+            initialLatitude: 0,
+            initialLongitude: 0
+        });
     }
 
     return (
@@ -89,13 +97,16 @@ export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
     const emergencyTypes = useEmergencyTypes();
-
+    const request = useRequest();
+    const counterpart = useCounterpart();
+    
     if (!tokenData) {
         return;
     }
-
+    
     const { type } = tokenData;
-    const isBusy = false;
+    const isWaiting = !!request;
+    const isBusy = isWaiting && !!counterpart;
 
     return (
         <main className={styles.assistancePage}>
@@ -104,8 +115,9 @@ export const AssistancePage = () => {
                     isBusy ? <BusyClinicianView profile={profile} />
                     : <AvailableClinicianView profile={profile} />
                 : type == 'PACIENTE' ?
-                    isBusy ? 'busy patient'
-                    : <AvailablePatientView emergencyTypes={emergencyTypes}/>
+                    isBusy ? 'busy'
+                    : isWaiting ? 'waiting'
+                    : <AvailablePatientView emergencyTypes={emergencyTypes} />
                 : null
             }
         </main>
