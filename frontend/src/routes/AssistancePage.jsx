@@ -93,6 +93,16 @@ const AvailablePatientView = ({ emergencyTypes }) => {
     );
 };
 
+const WaitingPatientView = () => (
+    <div className={styles.waitingPatientView}>
+        <div className={styles.waitingPatientBoldText}>
+            <p>Tu solicitud está</p>
+            <p className={styles.waitingPatientColorText}>Pendiente</p>
+        </div>
+            <p>En breve te será asignado un médico</p>
+    </div>
+);
+
 export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
@@ -116,7 +126,7 @@ export const AssistancePage = () => {
                     : <AvailableClinicianView profile={profile} />
                 : type == 'PACIENTE' ?
                     isBusy ? 'busy'
-                    : isWaiting ? 'waiting'
+                    : isWaiting ? <WaitingPatientView />
                     : <AvailablePatientView emergencyTypes={emergencyTypes} />
                 : null
             }

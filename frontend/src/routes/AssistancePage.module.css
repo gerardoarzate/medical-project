@@ -64,3 +64,25 @@
 .availablePatientFormLabelTitle {
     font-weight: bold;
 }
+
+.waitingPatientView {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    font-size: 20px;
+    text-align: center;
+}
+
+.waitingPatientBoldText {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-weight: bold;
+}
+
+.waitingPatientColorText {
+    color: var(--secondary);
+}
