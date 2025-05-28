@@ -55,7 +55,9 @@ setInterval(async () => {
         
         const patiendData = await patientRepository.getPatientById(pendingRequest.patientId);
         const messageToMedic = generateMessageFromCounterpartData({ type: 'PACIENTE', data: patiendData });
-        messageToMedic.notas = pendingRequest.notes;
+        messageToMedic.notes = pendingRequest.notes;
+        messageToMedic.requestTimestamp = pendingRequest.date.getTime();
+        messageToMedic.emergencyTypeId = pendingRequest.emergencyId;
         chosenMedic.socket.emit('receiveCounterpartData', messageToMedic);
 
         if (patientConnected) {

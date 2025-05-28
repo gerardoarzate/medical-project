@@ -45,7 +45,7 @@ const sendPendingRequestIfExist = async (userConnected) => {
         if (!requestAssigned) return;
         const patientData = await patientRepository.getPatientById(requestAssigned.patientId);
         dataToSend = generateMessageFromCounterpartData({ type: 'PACIENTE', data: patientData });
-        dataToSend.notas = requestAssigned.notes;
+        dataToSend.notes = requestAssigned.notes;
         userConnected.socket.emit('receiveCounterpartData', {...dataToSend, requestTimestamp: requestAssigned.date.getTime(), emergencyTypeId: requestAssigned.emergencyId});
 
         const patientAssigned = (await userService.getAllConnectedPatients()).find(patient => patient.userId == patientData.id);
