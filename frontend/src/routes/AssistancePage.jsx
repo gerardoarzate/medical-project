@@ -13,6 +13,7 @@ import { CardOptionGroup } from '../components/CardOptionGroup';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAssistanceService } from '../contexts/AssistanceServiceContext';
+import { Dialog } from '@capacitor/dialog';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -27,16 +28,34 @@ const AvailableClinicianView = ({ profile }) => (
     </>
 );
 
-const BusyClinicianView = ({ profile }) => (
-    <div className={styles.busyClinicianView}>
-        <SpecialityHeader speciality={profile?.speciality} name={profile?.name} />
-        <Destination destination={'Av. de las Ciencias, Facultad de Informática UAQ Campus Juriquilla'} />
-        <div className={styles.busyClinicianContent}>
-            <Map />
-            <EmergencyDetails emergencyType={'Tipo de emergencia'.toUpperCase()} reportTimestampInMs={Date.now()} />
+const BusyClinicianView = ({ profile }) => {
+    const { assistanceService } = useAssistanceService();
+
+    const endAssistance = async () => {
+        const { value } = await Dialog.confirm({
+            title: 'Finalizar asistencia',
+            message: '¿Desea finalizar la asistencia a este paciente?',
+            okButtonTitle: 'Finalizar',
+            cancelButtonTitle: 'Cancelar'
+        })
+        
+        if (value) {
+            assistanceService.endRequest();
+        }
+    }
+
+    return (
+        <div className={styles.busyClinicianView}>
+            <SpecialityHeader speciality={profile?.speciality} name={profile?.name} />
+            <Destination destination={'Av. de las Ciencias, Facultad de Informática UAQ Campus Juriquilla'} />
+            <div className={styles.busyClinicianContent}>
+                <Map />
+                <EmergencyDetails emergencyType={'Tipo de emergencia'.toUpperCase()} reportTimestampInMs={Date.now()} />
+                <Button onClick={endAssistance}>Finalizar asistencia</Button>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const AvailablePatientView = ({ emergencyTypes }) => {
     const [formData, setFormData] = useState({
