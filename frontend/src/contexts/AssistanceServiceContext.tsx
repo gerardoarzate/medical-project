@@ -87,9 +87,11 @@ export const AssistanceServiceProvider = ({ children }) => {
         }
 
         return () => {
-            assistanceService.removeMessageListener(messageListener);
-            assistanceService.removeRequestListener(requestListener);
-            removeCounterpartListener();
+            try {
+                assistanceService.end();
+            } catch {
+                // assistanceService object and all its listeners already destroyed
+            }
         }
     }, [assistanceService]);
 
