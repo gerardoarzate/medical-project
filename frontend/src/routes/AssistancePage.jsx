@@ -127,6 +127,27 @@ const WaitingPatientView = () => (
     </div>
 );
 
+const BusyPatientView = () => {
+    const { request, counterpart } = useAssistanceService();
+    const emergencyTypes = useEmergencyTypes();
+
+    return (
+        <div className={styles.busyPatientView}>
+            <SpecialityHeader speciality={counterpart?.speciality} name={counterpart?.fullName} />
+            {/* TODO: Display real destination */}
+            <Destination destination={'Facultad de Informática, UAQ Campus Juriquilla'} /> 
+            <div className={styles.busyPatientContent}>
+                <Map />
+                <EmergencyDetails
+                    emergencyType={emergencyTypes.find(type => type.id == request.emergencyTypeId).name}
+                    reportTimestampInMs={request.creationTimestamp}
+                    notes={request.notes}
+                />
+            </div>
+        </div>
+    );
+}
+
 export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
@@ -149,7 +170,7 @@ export const AssistancePage = () => {
                     isBusy ? <BusyClinicianView profile={profile} />
                     : <AvailableClinicianView profile={profile} />
                 : type == 'PACIENTE' ?
-                    isBusy ? 'busy'
+                    isBusy ? <BusyPatientView />
                     : isWaiting ? <WaitingPatientView />
                     : <AvailablePatientView emergencyTypes={emergencyTypes} />
                 : null
