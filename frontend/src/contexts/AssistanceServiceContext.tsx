@@ -60,6 +60,9 @@ export const AssistanceServiceProvider = ({ children }) => {
             return;
         }
 
+        setMessages(assistanceService.getMessages());
+        setRequest(assistanceService.getRequest());
+
         const messageListener: MessageListener = messages => setMessages(messages);
         assistanceService.addMessageListener(messageListener);
 
@@ -71,21 +74,29 @@ export const AssistanceServiceProvider = ({ children }) => {
 
         switch (type) {
             case 'MEDICO':
+                const clinicianService = (assistanceService as ClinicianAssistanceService);
+
                 const patientListener: PatientListener = patient => setCounterpart(patient);
-                (assistanceService as ClinicianAssistanceService).addPatientListener(patientListener);
+                clinicianService.addPatientListener(patientListener);
+                setCounterpart(clinicianService.getPatient())
+
                 removeCounterpartListener = () => {
-                    (assistanceService as ClinicianAssistanceService).removePatientListener(patientListener);
+                    clinicianService.removePatientListener(patientListener);
                 }
                 break;
             case 'PACIENTE':
+                const patientService = (assistanceService as PatientAssistanceService);
+
                 const clinicianListener: ClinicianListener = patient => setCounterpart(patient);
-                (assistanceService as PatientAssistanceService).addClinicianListener(clinicianListener);
+                patientService.addClinicianListener(clinicianListener);
+                setCounterpart(patientService.getClinician())
+
                 removeCounterpartListener = () => {
-                    (assistanceService as PatientAssistanceService).removeClinicianListener(clinicianListener);
+                    patientService.removeClinicianListener(clinicianListener);
                 }
                 break;
         }
-
+        
         return () => {
             try {
                 assistanceService.end();
