@@ -46,6 +46,7 @@ export const TokenProvider = ({ children }) => {
             if (token != undefined) {
                 setToken(undefined);
             }
+            setTokenData(undefined);
             localStorage.clear();
             navigate('/');
 
