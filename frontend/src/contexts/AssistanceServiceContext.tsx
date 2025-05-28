@@ -4,6 +4,7 @@ import { useToken } from './TokenContext';
 import { Dialog } from '@capacitor/dialog';
 import { ClinicianAssistanceService, PatientAssistanceService, AssistanceService } from '../services/AssistanceService';
 import { MessageHistory, AssistanceRequest, Counterpart, MessageListener, RequestListener, PatientListener, ClinicianListener } from '../services/AssistanceService';
+import { useLocation } from '../contexts/LocationContext';
 
 interface AssistanceServiceContext {
     assistanceService: AssistanceService | null,
@@ -22,10 +23,15 @@ const AssistanceServiceContext = createContext<AssistanceServiceContext>({
 export const AssistanceServiceProvider = ({ children }) => {
     const { apiUrl } = useAPI();
     const { token, setToken, tokenData } = useToken();
+    const location = useLocation();
     const [assistanceService, setAssistanceService] = useState<AssistanceService | null>(null);
     const [messages, setMessages] = useState<MessageHistory>([]);
     const [request, setRequest] = useState<AssistanceRequest | undefined>();
     const [counterpart, setCounterpart] = useState<Counterpart | undefined>();
+
+    // TODO: Prevent AssistanceService to be instanciated with latitude or longitude 0
+    const longitude = location.longitude || 0;
+    const latitude = location.latitude || 0;
     
     useEffect(() => {
         if (!token && assistanceService) {
@@ -37,10 +43,10 @@ export const AssistanceServiceProvider = ({ children }) => {
             try {
                 switch (tokenData?.type) {
                     case 'MEDICO':
-                        setAssistanceService(new ClinicianAssistanceService(apiUrl, token, 0, 0));
+                        setAssistanceService(new ClinicianAssistanceService(apiUrl, token, latitude, longitude));
                         break;
                     case 'PACIENTE':
-                        setAssistanceService(new PatientAssistanceService(apiUrl, token, 0, 0));
+                        setAssistanceService(new PatientAssistanceService(apiUrl, token, latitude, longitude));
                         break;
                 }
             } catch (error) {
