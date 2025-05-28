@@ -22,7 +22,13 @@ async function startServer() {
     const server = app.listen(process.env.PORT || 3000, () => {
         console.log(`Listening on port ${server.address().port}`);
     });
-    const io = socketIOServer(server);
+    const io = socketIOServer(server, {
+        cors: {
+            origin: '*',
+            methods: ['*'],
+            credentials: false
+        }
+    });
     app.use(express.json());
     app.use(express.raw({ limit: '50mb', type: 'application/octet-stream' })); // Para manejar binarios
 
