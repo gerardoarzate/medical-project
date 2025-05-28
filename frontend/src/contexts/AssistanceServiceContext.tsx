@@ -102,9 +102,17 @@ export const AssistanceServiceProvider = ({ children }) => {
                 }
                 break;
         }
+
+        const updateLocationInterval = setInterval(() => {
+            if (!latitude || !longitude) {
+                return;
+            }
+            assistanceService.updateLocation(latitude, longitude);
+        }, 10_000);
         
         return () => {
             try {
+                clearInterval(updateLocationInterval);
                 assistanceService.end();
             } catch {
                 // assistanceService object and all its listeners already destroyed

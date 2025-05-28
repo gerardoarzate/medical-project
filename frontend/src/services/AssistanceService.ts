@@ -61,6 +61,17 @@ export interface CreateRequestBody {
     initialLongitude: number
 }
 
+interface UpdateCounterpartLocationEventBody {
+    isOnline: boolean,
+    currentLatitude: number,
+    currentLongitude: number
+}
+
+interface UpdateUserLocationBody {
+    currentLatitude: number,
+    currentLongitude: number
+}
+
 export type MessageHistory = Message[];
 
 type Listener<Data> = (data: Data) => any;
@@ -158,6 +169,19 @@ export abstract class AssistanceService {
             return undefined;
         }
         return { ...this.request };
+    }
+
+    updateLocation(latitude: number, longitude: number) {
+        if (!latitude || !longitude) {
+            return;
+        }
+
+        const body: UpdateUserLocationBody = {
+            currentLatitude: latitude,
+            currentLongitude: longitude
+        };
+
+        this.socket.emit('updateUserLocation', body);
     }
 
     addRequestListener(listener: RequestListener) {
@@ -273,6 +297,7 @@ export abstract class AssistanceService {
         this.clearStoredData();
         this.requestCompletedListeners.emit(undefined);
     }
+
 }
 
 /**
@@ -295,6 +320,10 @@ export class ClinicianAssistanceService extends AssistanceService {
 
         this.on('isRequestCompleted', () => 
             this.handleRequestCompletedForClinician()
+        );
+
+        this.on('updateCounterpartLocation', (data: UpdateCounterpartLocationEventBody) =>
+            this.handleUpdateCounterpartLocation(data)
         );
     }
     
@@ -375,6 +404,21 @@ export class ClinicianAssistanceService extends AssistanceService {
     private handleRequestCompletedForClinician() {
         this.clearPatient();
     }
+
+    private handleUpdateCounterpartLocation(data: UpdateCounterpartLocationEventBody) {
+        if (!this.patient) {
+            return;
+        }
+
+        const patient: Patient = {
+            ...this.patient,
+            latitude: data.currentLatitude,
+            longitude: data.currentLongitude,
+            isOnline: data.isOnline
+        }
+
+        this.setPatient(patient);
+    }
 }
 
 /**
@@ -401,6 +445,10 @@ export class PatientAssistanceService extends AssistanceService {
 
         this.on('isRequestCompleted', () => 
             this.handleRequestCompletedForPatient()
+        );
+
+        this.on('updateCounterpartLocation', (data: UpdateCounterpartLocationEventBody) =>
+            this.handleUpdateCounterpartLocation(data)
         );
 
     }
@@ -485,5 +533,20 @@ export class PatientAssistanceService extends AssistanceService {
 
     private handleRequestCreated() {
         // TODO: The local request object should be created here
+    }
+
+    private handleUpdateCounterpartLocation(data: UpdateCounterpartLocationEventBody) {
+        if (!this.clinician) {
+            return;
+        }
+
+        const clinician: Clinician = {
+            ...this.clinician,
+            latitude: data.currentLatitude,
+            longitude: data.currentLongitude,
+            isOnline: data.isOnline
+        }
+
+        this.setClinician(clinician);
     }
 }
