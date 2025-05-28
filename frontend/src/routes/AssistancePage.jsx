@@ -13,7 +13,6 @@ import { CardOptionGroup } from '../components/CardOptionGroup';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAssistanceService } from '../contexts/AssistanceServiceContext';
-import { useRequest, useCounterpart } from '../hooks/assistanceServiceHooks';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -44,7 +43,7 @@ const AvailablePatientView = ({ emergencyTypes }) => {
         selectedType: undefined,
         notes: ''
     });
-    const assistanceService = useAssistanceService();
+    const { assistanceService } = useAssistanceService();
 
     const handleConfirm = () => {
         const { selectedType, notes } = formData;
@@ -107,8 +106,8 @@ export const AssistancePage = () => {
     const { tokenData } = useToken();
     const profile = useProfile();
     const emergencyTypes = useEmergencyTypes();
-    const request = useRequest();
-    const counterpart = useCounterpart();
+    const { request } = useAssistanceService();
+    const { counterpart } = useAssistanceService();
     
     if (!tokenData) {
         return;
