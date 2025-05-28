@@ -13,6 +13,7 @@
     "@capacitor/android": "^7.0.1",
     "@capacitor/core": "^7.0.1",
     "@capacitor/dialog": "^7.0.1",
+    "@capacitor/geolocation": "^7.1.2",
     "leaflet": "^1.9.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
