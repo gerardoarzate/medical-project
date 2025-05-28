@@ -355,14 +355,14 @@ const generateMessageFromCounterpartData = (recipientData) => {
     if (recipientData.type == 'MEDICO') {
 
         return {
-            fullname: recipientData.data.lastname + ' ' + recipientData.data.name,
+            fullname: recipientData.data.name + ' ' + recipientData.data.lastname,
             licence: recipientData.data.licence,
             speciality: recipientData.data.speciality,
             telephone: recipientData.data.telephone
         }
     } else if (recipientData.type == 'PACIENTE') {
         return {
-            fullname: recipientData.data.lastname + ' ' + recipientData.data.name,
+            fullname: recipientData.data.name + ' ' + recipientData.data.lastname,
             height: recipientData.data.height,
             weight: recipientData.data.weight,
             age: recipientData.data.age,
