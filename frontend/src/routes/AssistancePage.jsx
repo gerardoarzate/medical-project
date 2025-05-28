@@ -29,7 +29,8 @@ const AvailableClinicianView = ({ profile }) => (
 );
 
 const BusyClinicianView = ({ profile }) => {
-    const { assistanceService } = useAssistanceService();
+    const { assistanceService, request } = useAssistanceService();
+    const emergencyTypes = useEmergencyTypes();
 
     const endAssistance = async () => {
         const { value } = await Dialog.confirm({
@@ -47,10 +48,15 @@ const BusyClinicianView = ({ profile }) => {
     return (
         <div className={styles.busyClinicianView}>
             <SpecialityHeader speciality={profile?.speciality} name={profile?.name} />
-            <Destination destination={'Av. de las Ciencias, Facultad de Informática UAQ Campus Juriquilla'} />
+            {/* TODO: Display real destination */}
+            <Destination destination={'Facultad de Informática, UAQ Campus Juriquilla'} /> 
             <div className={styles.busyClinicianContent}>
                 <Map />
-                <EmergencyDetails emergencyType={'Tipo de emergencia'.toUpperCase()} reportTimestampInMs={Date.now()} />
+                <EmergencyDetails
+                    emergencyType={emergencyTypes.find(type => type.id == request.emergencyTypeId).name}
+                    reportTimestampInMs={request.creationTimestamp}
+                    notes={request.notes}
+                />
                 <Button onClick={endAssistance}>Finalizar asistencia</Button>
             </div>
         </div>
