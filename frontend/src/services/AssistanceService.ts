@@ -149,6 +149,17 @@ export abstract class AssistanceService {
         this.addMessages(msgObj);
     }
 
+    getMessages(): MessageHistory {
+        return [...this.messages];
+    }
+
+    getRequest(): AssistanceRequest | undefined {
+        if (!this.request) {
+            return undefined;
+        }
+        return { ...this.request };
+    }
+
     addRequestListener(listener: RequestListener) {
         this.requestListeners.add(listener);
     }
@@ -286,6 +297,13 @@ export class ClinicianAssistanceService extends AssistanceService {
             this.handleRequestCompletedForClinician()
         );
     }
+    
+    getPatient(): Patient | undefined {
+        if (!this.patient) {
+            return undefined;
+        }
+        return { ...this.patient };
+    }
 
     endRequest() {
         this.socket.emit('endRequest');
@@ -398,6 +416,13 @@ export class PatientAssistanceService extends AssistanceService {
         };
 
         this.setRequest(request);
+    }
+
+    getClinician(): Clinician | undefined {
+        if (!this.clinician) {
+            return undefined;
+        }
+        return { ...this.clinician };
     }
 
     addClinicianListener(listener: ClinicianListener) {
