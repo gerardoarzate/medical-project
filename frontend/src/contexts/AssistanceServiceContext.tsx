@@ -3,13 +3,29 @@ import { useAPI } from './APIContext';
 import { useToken } from './TokenContext';
 import { Dialog } from '@capacitor/dialog';
 import { ClinicianAssistanceService, PatientAssistanceService, AssistanceService } from '../services/AssistanceService';
+import { MessageHistory, AssistanceRequest, Counterpart, MessageListener, RequestListener, PatientListener, ClinicianListener } from '../services/AssistanceService';
 
-const AssistanceServiceContext = createContext<AssistanceService | null>(null);
+interface AssistanceServiceContext {
+    assistanceService: AssistanceService | null,
+    messages: MessageHistory,
+    request: AssistanceRequest | undefined,
+    counterpart: Counterpart | undefined
+}
+
+const AssistanceServiceContext = createContext<AssistanceServiceContext>({
+    assistanceService: null,
+    messages: [],
+    request: undefined,
+    counterpart: undefined
+});
 
 export const AssistanceServiceProvider = ({ children }) => {
     const { apiUrl } = useAPI();
     const { token, setToken, tokenData } = useToken();
     const [assistanceService, setAssistanceService] = useState<AssistanceService | null>(null);
+    const [messages, setMessages] = useState<MessageHistory>([]);
+    const [request, setRequest] = useState<AssistanceRequest | undefined>();
+    const [counterpart, setCounterpart] = useState<Counterpart | undefined>();
     
     useEffect(() => {
         if (!token && assistanceService) {
@@ -39,8 +55,53 @@ export const AssistanceServiceProvider = ({ children }) => {
         }
     }, [ token, tokenData ]);
 
+    useEffect(() => {
+        if (!assistanceService) {
+            return;
+        }
+
+        const messageListener: MessageListener = messages => setMessages(messages);
+        assistanceService.addMessageListener(messageListener);
+
+        const requestListener: RequestListener = request => setRequest(request);
+        assistanceService.addRequestListener(requestListener);
+
+        const { type } = tokenData;
+        let removeCounterpartListener: () => void = () => {};
+
+        switch (type) {
+            case 'MEDICO':
+                const patientListener: PatientListener = patient => setCounterpart(patient);
+                (assistanceService as ClinicianAssistanceService).addPatientListener(patientListener);
+                removeCounterpartListener = () => {
+                    (assistanceService as ClinicianAssistanceService).removePatientListener(patientListener);
+                }
+                break;
+            case 'PACIENTE':
+                const clinicianListener: ClinicianListener = patient => setCounterpart(patient);
+                (assistanceService as PatientAssistanceService).addClinicianListener(clinicianListener);
+                removeCounterpartListener = () => {
+                    (assistanceService as PatientAssistanceService).removeClinicianListener(clinicianListener);
+                }
+                break;
+        }
+
+        return () => {
+            assistanceService.removeMessageListener(messageListener);
+            assistanceService.removeRequestListener(requestListener);
+            removeCounterpartListener();
+        }
+    }, [assistanceService]);
+
     return (
-        <AssistanceServiceContext.Provider value={assistanceService}>
+        <AssistanceServiceContext.Provider 
+            value={{
+                assistanceService,
+                messages,
+                request,
+                counterpart
+            }}
+        >
             {children}
         </AssistanceServiceContext.Provider>
     );
