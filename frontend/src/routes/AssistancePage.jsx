@@ -14,6 +14,7 @@ import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { useAssistanceService } from '../contexts/AssistanceServiceContext';
 import { Dialog } from '@capacitor/dialog';
+import { useLocation } from 'react-router';
 
 const AvailableClinicianView = ({ profile }) => (
     <>
@@ -69,6 +70,9 @@ const AvailablePatientView = ({ emergencyTypes }) => {
         notes: ''
     });
     const { assistanceService } = useAssistanceService();
+    const location = useLocation();
+    const longitude = location.longitude || 0;
+    const latitude = location.latitude || 0;
 
     const handleConfirm = () => {
         const { selectedType, notes } = formData;
@@ -77,8 +81,8 @@ const AvailablePatientView = ({ emergencyTypes }) => {
         assistanceService.createRequest({
             emergencyTypeId: selectedId,
             notes: notes,
-            initialLatitude: 0,
-            initialLongitude: 0
+            initialLatitude: latitude,
+            initialLongitude: longitude
         });
     }
 
